@@ -188,6 +188,15 @@ func _test_interaction_and_memory() -> void:
 	detector.prompt_changed.emit("测试提示")
 	_check(prompt.text.contains("测试提示"), "提示语接到了 PromptLabel")
 
+	# 调查井台 → Director 解锁占位 CG（画廊管线的现场链路）
+	GalleryManager.reset()
+	var well: Interactable = level.get_node("Props/WellSpot")
+	well.interact(p)
+	while bool(box.is_showing()):
+		box.advance()
+	_check(GalleryManager.has_cg(&"cg_placeholder_01"), "调查井台解锁了占位 CG")
+	_check(GalleryManager.is_unseen(&"cg_placeholder_01"), "新解锁的 CG 带 NEW 角标")
+
 	# 梦奁信物照常拾取
 	_check(not MemoryManager.has_memory(HAIRPIN), "开局没有山鸟簪")
 	pickup.interact(p)

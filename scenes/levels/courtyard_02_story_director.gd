@@ -29,5 +29,5 @@ func _on_screen_examined(_player: Node) -> void:
 	if StoryFlagManager.has_flag(FLAG_SCREEN_EXAMINED):
 		return
 	StoryFlagManager.set_flag(FLAG_SCREEN_EXAMINED)
-	# 叙事定稿后这里会解锁对应 CG，例如：
-	#   GalleryManager.unlock_cg(&"cg_02_screen")
+	# 占位接线，同 courtyard_01。剧情定稿后换成真正的 CG id。
+	GalleryManager.unlock_cg(&"cg_placeholder_02")

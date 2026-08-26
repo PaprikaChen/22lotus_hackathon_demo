@@ -59,6 +59,9 @@ func _on_well_examined(_player: Node) -> void:
 	if StoryFlagManager.has_flag(FLAG_WELL_EXAMINED):
 		return
 	StoryFlagManager.set_flag(FLAG_WELL_EXAMINED)
+	# 占位接线：让画廊管线能被真正走通一遍（解锁 → NEW 角标 → 跨档保留）。
+	# 剧情定稿后换成真正该在这里解锁的那张 CG。
+	GalleryManager.unlock_cg(&"cg_placeholder_01")
 
 
 func _on_hairpin_taken(_player: Node) -> void:
