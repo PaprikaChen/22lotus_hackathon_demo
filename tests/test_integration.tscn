@@ -1,0 +1,199 @@
+[gd_scene load_steps=16 format=3 uid="uid://d0o13b8jgn3bl"]
+
+[ext_resource type="Script" uid="uid://bry7xn4el3ue7" path="res://tests/test_integration.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/components/moving_platform.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/components/test_enemy.tscn" id="4"]
+[ext_resource type="Script" path="res://scripts/components/flag_pickup.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/components/story_door.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/components/save_point.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/components/memory_pickup.gd" id="9"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="11"]
+
+[sub_resource type="RectangleShape2D" id="FloorShape"]
+size = Vector2(500, 40)
+
+[sub_resource type="CircleShape2D" id="InteractShape"]
+radius = 50.0
+
+[sub_resource type="RectangleShape2D" id="BlockerShape"]
+size = Vector2(24, 160)
+
+[sub_resource type="RectangleShape2D" id="GoalShape"]
+size = Vector2(40, 100)
+
+[sub_resource type="RectangleShape2D" id="DeathShape"]
+size = Vector2(1400, 60)
+
+[node name="TestIntegration" type="Node2D"]
+script = ExtResource("1")
+level_id = &"test_integration"
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(120, 480)
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="FloorA" type="StaticBody2D" parent="World"]
+position = Vector2(250, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/FloorA"]
+shape = SubResource("FloorShape")
+
+[node name="Visual" type="Polygon2D" parent="World/FloorA"]
+color = Color(0.35, 0.35, 0.4, 1)
+polygon = PackedVector2Array(-250, -20, 250, -20, 250, 20, -250, 20)
+
+[node name="FloorB" type="StaticBody2D" parent="World"]
+position = Vector2(900, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/FloorB"]
+shape = SubResource("FloorShape")
+
+[node name="Visual" type="Polygon2D" parent="World/FloorB"]
+color = Color(0.35, 0.35, 0.4, 1)
+polygon = PackedVector2Array(-250, -20, 250, -20, 250, 20, -250, 20)
+
+[node name="SavePoint" type="Area2D" parent="World"]
+position = Vector2(300, 540)
+script = ExtResource("8")
+prompt_text = "存档"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/SavePoint"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/SavePoint"]
+color = Color(0.45, 0.6, 0.95, 1)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="PlatA" type="Marker2D" parent="World"]
+position = Vector2(520, 560)
+
+[node name="PlatB" type="Marker2D" parent="World"]
+position = Vector2(680, 560)
+
+[node name="MovingPlatform" parent="World" instance=ExtResource("3")]
+position = Vector2(520, 560)
+speed = 200.0
+point_a_path = NodePath("../PlatA")
+point_b_path = NodePath("../PlatB")
+
+[node name="StonePickup" type="Area2D" parent="World"]
+position = Vector2(600, 470)
+script = ExtResource("9")
+memory_id = &"mountain_stone"
+prompt_text = "拾起 山纹奇石"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/StonePickup"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/StonePickup"]
+color = Color(0.55, 0.8, 0.75, 1)
+polygon = PackedVector2Array(0, -14, 14, 0, 0, 14, -14, 0)
+
+[node name="TestEnemy" parent="World" instance=ExtResource("4")]
+position = Vector2(770, 555)
+patrol_distance = 60.0
+
+[node name="StoneSpot" type="Area2D" parent="World"]
+position = Vector2(880, 540)
+script = ExtResource("9")
+memory_id = &"mountain_stone"
+mode = 1
+flag_to_set = &"test.integration.stone_checked"
+prompt_text = "调查石上的纹路"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/StoneSpot"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/StoneSpot"]
+color = Color(0.7, 0.6, 0.85, 1)
+polygon = PackedVector2Array(-14, 10, 0, -14, 14, 10)
+
+[node name="KeyPickup" type="Area2D" parent="World"]
+position = Vector2(950, 540)
+script = ExtResource("6")
+flag_to_set = &"test.integration.key_found"
+prompt_text = "拾取钥匙"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/KeyPickup"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/KeyPickup"]
+color = Color(0.9, 0.8, 0.3, 1)
+polygon = PackedVector2Array(0, -16, 16, 0, 0, 16, -16, 0)
+
+[node name="Door" type="Area2D" parent="World"]
+position = Vector2(1040, 500)
+script = ExtResource("7")
+prompt_text = "开门"
+one_shot = true
+required_flag = &"test.integration.key_found"
+blocked_prompt_text = "锁着的——需要钥匙"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Door"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/Door"]
+color = Color(0.6, 0.45, 0.3, 1)
+polygon = PackedVector2Array(-12, -80, 12, -80, 12, 80, -12, 80)
+
+[node name="Blocker" type="StaticBody2D" parent="World/Door"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Door/Blocker"]
+shape = SubResource("BlockerShape")
+
+[node name="Goal" type="Area2D" parent="World"]
+position = Vector2(1110, 530)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Goal"]
+shape = SubResource("GoalShape")
+
+[node name="Visual" type="Polygon2D" parent="World/Goal"]
+color = Color(0.4, 0.85, 0.5, 1)
+polygon = PackedVector2Array(-20, -50, 20, -50, 20, 50, -20, 50)
+
+[node name="DeathZone" type="Area2D" parent="World"]
+position = Vector2(576, 720)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/DeathZone"]
+shape = SubResource("DeathShape")
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(120, 480)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="MemoryBoxUI" parent="." instance=ExtResource("10")]
+player_path = NodePath("../Player")
+
+[node name="MemoryToast" parent="." instance=ExtResource("11")]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="StatusLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 700.0
+offset_bottom = 80.0
+
+[node name="PromptLabel" type="Label" parent="UI"]
+offset_left = 400.0
+offset_top = 560.0
+offset_right = 760.0
+offset_bottom = 600.0
+horizontal_alignment = 1
+
+[node name="ResultLabel" type="Label" parent="UI"]
+offset_left = 280.0
+offset_top = 90.0
+offset_right = 880.0
+offset_bottom = 130.0
+horizontal_alignment = 1

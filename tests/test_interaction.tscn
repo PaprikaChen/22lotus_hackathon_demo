@@ -1,0 +1,110 @@
+[gd_scene load_steps=6 format=3 uid="uid://ck215llrhdrqp"]
+
+[ext_resource type="Script" uid="uid://do67ln23puojh" path="res://tests/test_interaction.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Script" uid="uid://cek8qmeg1w5am" path="res://tests/helpers/test_interactable.gd" id="3"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(1400, 40)
+
+[sub_resource type="CircleShape2D" id="InteractShape"]
+radius = 50.0
+
+[node name="TestInteraction" type="Node2D"]
+script = ExtResource("1")
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(150, 480)
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Ground" type="StaticBody2D" parent="World"]
+position = Vector2(576, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="Visual" type="Polygon2D" parent="World/Ground"]
+color = Color(0.35, 0.35, 0.4, 1)
+polygon = PackedVector2Array(-700, -20, 700, -20, 700, 20, -700, 20)
+
+[node name="SignA" type="Area2D" parent="World"]
+position = Vector2(420, 540)
+script = ExtResource("3")
+display_name = "SignA"
+simulate_dialogue_seconds = 0.5
+prompt_text = "查看告示"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/SignA"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/SignA"]
+color = Color(0.5, 0.75, 0.55, 1)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="SignB" type="Area2D" parent="World"]
+position = Vector2(480, 540)
+script = ExtResource("3")
+display_name = "SignB"
+prompt_text = "推门"
+interact_priority = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/SignB"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/SignB"]
+color = Color(0.75, 0.65, 0.45, 1)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="OneShotC" type="Area2D" parent="World"]
+position = Vector2(700, 540)
+script = ExtResource("3")
+display_name = "OneShotC"
+prompt_text = "拾取"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/OneShotC"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/OneShotC"]
+color = Color(0.85, 0.8, 0.4, 1)
+polygon = PackedVector2Array(0, -16, 16, 0, 0, 16, -16, 0)
+
+[node name="LockedD" type="Area2D" parent="World"]
+position = Vector2(900, 540)
+script = ExtResource("3")
+display_name = "LockedD"
+prompt_text = "开锁"
+required_flag = &"test.interaction.locked_door_key"
+blocked_prompt_text = "锁着的——需要钥匙"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/LockedD"]
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="World/LockedD"]
+color = Color(0.8, 0.45, 0.45, 1)
+polygon = PackedVector2Array(-14, -14, 14, -14, 14, 14, -14, 14)
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(150, 480)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="PromptLabel" type="Label" parent="UI"]
+offset_left = 400.0
+offset_top = 560.0
+offset_right = 760.0
+offset_bottom = 600.0
+horizontal_alignment = 1
+
+[node name="ResultLabel" type="Label" parent="UI"]
+offset_left = 280.0
+offset_top = 40.0
+offset_right = 880.0
+offset_bottom = 80.0
+horizontal_alignment = 1

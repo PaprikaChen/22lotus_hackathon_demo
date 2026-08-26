@@ -1,0 +1,197 @@
+[gd_scene load_steps=13 format=3 uid="uid://b44itxgv41kxy"]
+
+[ext_resource type="Script" uid="uid://drlhg11e1c1uo" path="res://tests/bg_pacing/bg_pacing_lab.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Texture2D" uid="uid://bkfo4i5nk1nvy" path="res://assets/art/backgrounds/testbg.jpg" id="3"]
+[ext_resource type="Script" path="res://scripts/components/memory_pickup.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/components/story_door.gd" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="7"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape_1"]
+size = Vector2(2000, 400)
+
+[sub_resource type="RectangleShape2D" id="TokenShape_1"]
+size = Vector2(44, 44)
+
+[sub_resource type="RectangleShape2D" id="DoorTouch_1"]
+size = Vector2(150, 200)
+
+[sub_resource type="RectangleShape2D" id="DoorBlock_1"]
+size = Vector2(64, 170)
+
+[sub_resource type="StyleBoxFlat" id="HudStyle_1"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0, 0, 0.66)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="BgPacingLab" type="Node2D"]
+script = ExtResource("1")
+level_id = &"bg_pacing_lab"
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="Background" type="Sprite2D" parent="."]
+texture = ExtResource("3")
+centered = false
+
+[node name="Ground" type="StaticBody2D" parent="."]
+
+[node name="GroundShape" type="CollisionShape2D" parent="Ground"]
+shape = SubResource("GroundShape_1")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="Token01" type="Area2D" parent="Props"]
+position = Vector2(1500, 0)
+script = ExtResource("4")
+memory_id = &"bg_pacing_token_01"
+prompt_text = "拾起 长卷信物 甲"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/Token01"]
+position = Vector2(0, -22)
+shape = SubResource("TokenShape_1")
+
+[node name="Visual" type="Node2D" parent="Props/Token01"]
+
+[node name="Outline" type="Polygon2D" parent="Props/Token01/Visual"]
+color = Color(0.1, 0.1, 0.12, 1)
+polygon = PackedVector2Array(-25, -47, 25, -47, 25, 3, -25, 3)
+
+[node name="Fill" type="Polygon2D" parent="Props/Token01/Visual"]
+color = Color(0.96, 0.84, 0.3, 1)
+polygon = PackedVector2Array(-22, -44, 22, -44, 22, 0, -22, 0)
+
+[node name="Token02" type="Area2D" parent="Props"]
+position = Vector2(4700, 0)
+script = ExtResource("4")
+memory_id = &"bg_pacing_token_02"
+prompt_text = "拾起 长卷信物 乙"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/Token02"]
+position = Vector2(0, -22)
+shape = SubResource("TokenShape_1")
+
+[node name="Visual" type="Node2D" parent="Props/Token02"]
+
+[node name="Outline" type="Polygon2D" parent="Props/Token02/Visual"]
+color = Color(0.1, 0.1, 0.12, 1)
+polygon = PackedVector2Array(-25, -47, 25, -47, 25, 3, -25, 3)
+
+[node name="Fill" type="Polygon2D" parent="Props/Token02/Visual"]
+color = Color(0.4, 0.78, 0.95, 1)
+polygon = PackedVector2Array(-22, -44, 22, -44, 22, 0, -22, 0)
+
+[node name="MemoryDoor" type="Area2D" parent="Props"]
+position = Vector2(6100, 0)
+script = ExtResource("5")
+required_memory = &"bg_pacing_token_02"
+prompt_text = "开门"
+one_shot = true
+blocked_prompt_text = "锁着的——需要 长卷信物 乙"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/MemoryDoor"]
+position = Vector2(0, -100)
+shape = SubResource("DoorTouch_1")
+
+[node name="Visual" type="Node2D" parent="Props/MemoryDoor"]
+
+[node name="Outline" type="Polygon2D" parent="Props/MemoryDoor/Visual"]
+color = Color(0.1, 0.1, 0.12, 1)
+polygon = PackedVector2Array(-36, -176, 36, -176, 36, 4, -36, 4)
+
+[node name="Fill" type="Polygon2D" parent="Props/MemoryDoor/Visual"]
+color = Color(0.72, 0.28, 0.28, 1)
+polygon = PackedVector2Array(-32, -170, 32, -170, 32, 0, -32, 0)
+
+[node name="Blocker" type="StaticBody2D" parent="Props/MemoryDoor"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/MemoryDoor/Blocker"]
+position = Vector2(0, -85)
+shape = SubResource("DoorBlock_1")
+
+[node name="Token03" type="Area2D" parent="Props"]
+position = Vector2(9200, 0)
+script = ExtResource("4")
+memory_id = &"bg_pacing_token_03"
+prompt_text = "拾起 长卷信物 丙"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/Token03"]
+position = Vector2(0, -22)
+shape = SubResource("TokenShape_1")
+
+[node name="Visual" type="Node2D" parent="Props/Token03"]
+
+[node name="Outline" type="Polygon2D" parent="Props/Token03/Visual"]
+color = Color(0.1, 0.1, 0.12, 1)
+polygon = PackedVector2Array(-25, -47, 25, -47, 25, 3, -25, 3)
+
+[node name="Fill" type="Polygon2D" parent="Props/Token03/Visual"]
+color = Color(0.55, 0.85, 0.45, 1)
+polygon = PackedVector2Array(-22, -44, 22, -44, 22, 0, -22, 0)
+
+[node name="Player" parent="." instance=ExtResource("2")]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="MemoryBoxUI" parent="." instance=ExtResource("6")]
+player_path = NodePath("../Player")
+
+[node name="MemoryToast" parent="." instance=ExtResource("7")]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HudPanel" type="PanelContainer" parent="UI"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 616.0
+offset_bottom = 212.0
+theme_override_styles/panel = SubResource("HudStyle_1")
+
+[node name="Rows" type="VBoxContainer" parent="UI/HudPanel"]
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="UI/HudPanel/Rows"]
+layout_mode = 2
+text = "…"
+
+[node name="HintLabel" type="Label" parent="UI/HudPanel/Rows"]
+modulate = Color(1, 1, 1, 0.62)
+layout_mode = 2
+text = "A/D 走  Space 跳  E 交互  Tab 梦奁  |  [ ] 速度  - = 背景缩放  9 0 体型
+, . 镜头  / 镜头复位  ; ' 地面线  |  1 复位  R 重来（清空信物）
+2/3/4 传送 5%/50%/95%  5/6/7/8 传送到 甲/乙/门/丙  T 秒表  H 隐藏"
+
+[node name="MsgPanel" type="PanelContainer" parent="UI"]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -84.0
+offset_right = 616.0
+offset_bottom = -16.0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("HudStyle_1")
+
+[node name="Rows" type="VBoxContainer" parent="UI/MsgPanel"]
+layout_mode = 2
+
+[node name="PromptLabel" type="Label" parent="UI/MsgPanel/Rows"]
+layout_mode = 2
+text = " "
+
+[node name="EventLabel" type="Label" parent="UI/MsgPanel/Rows"]
+modulate = Color(1, 0.94, 0.7, 1)
+layout_mode = 2
+text = " "

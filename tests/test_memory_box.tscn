@@ -1,0 +1,91 @@
+[gd_scene load_steps=6 format=3 uid="uid://biqyy0qf8krh0"]
+
+[ext_resource type="Script" uid="uid://qqbbxfocujsb" path="res://tests/test_memory_box.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="4"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(1400, 40)
+
+[node name="TestMemoryBox" type="Node2D"]
+script = ExtResource("1")
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(600, 480)
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Ground" type="StaticBody2D" parent="World"]
+position = Vector2(576, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="Visual" type="Polygon2D" parent="World/Ground"]
+color = Color(0.35, 0.35, 0.4, 1)
+polygon = PackedVector2Array(-700, -20, 700, -20, 700, 20, -700, 20)
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(600, 480)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="MemoryBoxUI" parent="." instance=ExtResource("3")]
+player_path = NodePath("../Player")
+
+[node name="MemoryToast" parent="." instance=ExtResource("4")]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InfoLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 700.0
+offset_bottom = 90.0
+
+[node name="Buttons" type="VBoxContainer" parent="UI"]
+offset_left = 16.0
+offset_top = 110.0
+offset_right = 220.0
+offset_bottom = 560.0
+theme_override_constants/separation = 6
+
+[node name="UnlockStone" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "解锁 山纹奇石"
+
+[node name="AdvanceStone" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "更新 山纹奇石"
+
+[node name="UnlockLantern" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "解锁 熄灭的水灯"
+
+[node name="AdvanceLantern" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "更新 熄灭的水灯"
+
+[node name="UnlockHairpin" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "解锁 山鸟簪"
+
+[node name="AdvanceHairpin" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "更新 山鸟簪"
+
+[node name="SaveButton" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "保存（槽位3）"
+
+[node name="ClearButton" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "清空运行时状态"
+
+[node name="LoadButton" type="Button" parent="UI/Buttons"]
+layout_mode = 2
+text = "读取（槽位3）"

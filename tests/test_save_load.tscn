@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://c5aacaok5fv3v"]
+
+[ext_resource type="Script" uid="uid://xdcnmmxeulhm" path="res://tests/test_save_load.gd" id="1"]
+
+[node name="TestSaveLoad" type="Node2D"]
+script = ExtResource("1")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InfoLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 700.0
+offset_bottom = 120.0
+text = "Save/Load self-test — fully automated.
+Results are printed to the output as [TEST:save] lines.
+Slot 3 is backed up and restored automatically."

@@ -1,0 +1,74 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/memory_box_ui.gd" id="1"]
+
+[node name="MemoryBoxUI" type="CanvasLayer"]
+layer = 80
+script = ExtResource("1")
+
+[node name="Root" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background" type="ColorRect" parent="Root"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.05, 0.04, 0.09, 0.88)
+
+[node name="Title" type="Label" parent="Root"]
+offset_left = 60.0
+offset_top = 32.0
+offset_right = 400.0
+offset_bottom = 72.0
+theme_override_font_sizes/font_size = 28
+text = "梦奁"
+
+[node name="MemoryGrid" type="GridContainer" parent="Root"]
+offset_left = 60.0
+offset_top = 100.0
+offset_right = 560.0
+offset_bottom = 560.0
+columns = 4
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 14
+
+[node name="EmptyLabel" type="Label" parent="Root"]
+offset_left = 60.0
+offset_top = 100.0
+offset_right = 560.0
+offset_bottom = 140.0
+text = "梦奁空无一物。"
+
+[node name="DetailPanel" type="VBoxContainer" parent="Root"]
+offset_left = 640.0
+offset_top = 100.0
+offset_right = 1092.0
+offset_bottom = 560.0
+theme_override_constants/separation = 12
+
+[node name="Icon" type="TextureRect" parent="Root/DetailPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(96, 96)
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MemoryTitle" type="Label" parent="Root/DetailPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+
+[node name="StatusLabel" type="Label" parent="Root/DetailPanel"]
+layout_mode = 2
+
+[node name="Description" type="Label" parent="Root/DetailPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 3
+
+[node name="CloseHint" type="Label" parent="Root"]
+offset_left = 60.0
+offset_top = 596.0
+offset_right = 600.0
+offset_bottom = 630.0
+text = "Tab / Esc 关闭    方向键或鼠标选择信物"

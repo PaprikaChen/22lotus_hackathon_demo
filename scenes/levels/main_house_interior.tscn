@@ -1,0 +1,117 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scenes/levels/main_house_interior.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/components/text_interactable.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="6"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(1152, 40)
+
+[sub_resource type="CircleShape2D" id="InteractShape"]
+radius = 50.0
+
+[node name="MainHouseInterior" type="Node2D"]
+script = ExtResource("1")
+level_id = &"main_house_interior"
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(180, 480)
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="DarkRoom" type="Polygon2D" parent="World"]
+color = Color(0.12, 0.1, 0.14, 1)
+polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 600, 0, 600)
+
+[node name="WindowLight" type="Polygon2D" parent="World"]
+position = Vector2(90, 440)
+color = Color(0.55, 0.6, 0.68, 1)
+polygon = PackedVector2Array(-34, -44, 34, -44, 34, 44, -34, 44)
+
+[node name="LightBeam" type="Polygon2D" parent="World"]
+color = Color(0.8, 0.82, 0.85, 0.12)
+polygon = PackedVector2Array(60, 400, 124, 400, 360, 580, 160, 580)
+
+[node name="BackWall" type="Polygon2D" parent="World"]
+color = Color(0.18, 0.15, 0.19, 1)
+polygon = PackedVector2Array(700, 280, 1152, 280, 1152, 580, 700, 580)
+
+[node name="Ground" type="StaticBody2D" parent="World"]
+position = Vector2(576, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="Visual" type="Polygon2D" parent="World/Ground"]
+color = Color(0.28, 0.25, 0.28, 1)
+polygon = PackedVector2Array(-576, -20, 576, -20, 576, 20, -576, 20)
+
+[node name="EdgeWallLeft" type="StaticBody2D" parent="World"]
+position = Vector2(-20, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/EdgeWallLeft"]
+shape = SubResource("GroundShape")
+rotation = 1.5708
+
+[node name="EdgeWallRight" type="StaticBody2D" parent="World"]
+position = Vector2(1172, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/EdgeWallRight"]
+shape = SubResource("GroundShape")
+rotation = 1.5708
+
+[node name="Interactables" type="Node2D" parent="."]
+
+[node name="LookAround" type="Area2D" parent="Interactables"]
+position = Vector2(600, 520)
+script = ExtResource("3")
+display_text = "这里是主屋内部。
+（灰盒占位，正式内容待定。）"
+prompt_text = "环顾四周"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactables/LookAround"]
+shape = SubResource("InteractShape")
+
+[node name="ExitWindow" type="Area2D" parent="Interactables"]
+position = Vector2(90, 500)
+script = ExtResource("3")
+display_text = "从侧窗翻出去，回到院中。"
+prompt_text = "翻出侧窗"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactables/ExitWindow"]
+shape = SubResource("InteractShape")
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(180, 480)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="MemoryBoxUI" parent="." instance=ExtResource("4")]
+player_path = NodePath("../Player")
+
+[node name="MemoryToast" parent="." instance=ExtResource("5")]
+
+[node name="DialogueBox" parent="." instance=ExtResource("6")]
+player_path = NodePath("../Player")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HintLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 700.0
+offset_bottom = 46.0
+text = "主屋内（灰盒占位）   A/D 移动   E 交互   空格 继续对话"
+
+[node name="PromptLabel" type="Label" parent="UI"]
+offset_left = 400.0
+offset_top = 400.0
+offset_right = 760.0
+offset_bottom = 440.0
+horizontal_alignment = 1

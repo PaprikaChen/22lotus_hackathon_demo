@@ -1,0 +1,609 @@
+[gd_scene load_steps=13 format=3 uid="uid://bby0xx7bi5oyr"]
+
+[ext_resource type="Script" uid="uid://ct4swt7kigi7m" path="res://scenes/levels/old_courtyard.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Script" uid="uid://6nxjpeecns72" path="res://scripts/components/exploration_area.gd" id="3"]
+[ext_resource type="Script" uid="uid://cwymo8ljuhuwt" path="res://scripts/components/area_flow_controller.gd" id="4"]
+[ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
+[ext_resource type="Script" path="res://scenes/levels/old_courtyard_story_director.gd" id="9"]
+[ext_resource type="Script" path="res://scenes/levels/old_courtyard_mother_cutscene.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/narrative/story_npc.gd" id="11"]
+[ext_resource type="Script" path="res://scripts/components/interactable.gd" id="12"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(1152, 40)
+
+[sub_resource type="CircleShape2D" id="InteractShape"]
+radius = 50.0
+
+[sub_resource type="RectangleShape2D" id="TriggerShape"]
+size = Vector2(60, 300)
+
+[sub_resource type="RectangleShape2D" id="EdgeWallShape"]
+size = Vector2(40, 400)
+
+[node name="OldCourtyard" type="Node2D"]
+script = ExtResource("1")
+level_id = &"old_courtyard"
+player_path = NodePath("Player")
+spawn_point_path = NodePath("AreaContainer/Area01_LandingGate/SpawnPoint")
+
+[node name="AreaContainer" type="Node2D" parent="."]
+
+[node name="Area01_LandingGate" type="Node2D" parent="AreaContainer"]
+script = ExtResource("3")
+
+[node name="Background" type="Node2D" parent="AreaContainer/Area01_LandingGate"]
+
+[node name="Sky" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Background"]
+color = Color(0.8, 0.8, 0.82, 1)
+polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 600, 0, 600)
+
+[node name="RoofLine" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Background"]
+color = Color(0.4, 0.38, 0.4, 1)
+polygon = PackedVector2Array(0, 230, 1152, 230, 1152, 262, 0, 262)
+
+[node name="HighWall" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Background"]
+color = Color(0.66, 0.65, 0.66, 1)
+polygon = PackedVector2Array(0, 262, 1152, 262, 1152, 580, 0, 580)
+
+[node name="Mist" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Background"]
+color = Color(0.92, 0.92, 0.95, 0.25)
+polygon = PackedVector2Array(0, 430, 1152, 430, 1152, 560, 0, 560)
+
+[node name="Middleground" type="Node2D" parent="AreaContainer/Area01_LandingGate"]
+
+[node name="Ground" type="StaticBody2D" parent="AreaContainer/Area01_LandingGate/Middleground"]
+position = Vector2(576, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area01_LandingGate/Middleground/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="Visual" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Middleground/Ground"]
+color = Color(0.45, 0.45, 0.48, 1)
+polygon = PackedVector2Array(-576, -20, 576, -20, 576, 20, -576, 20)
+
+[node name="LeafPile" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Middleground"]
+position = Vector2(220, 580)
+color = Color(0.5, 0.4, 0.28, 1)
+polygon = PackedVector2Array(-60, 0, -20, -22, 30, -14, 70, 0)
+
+[node name="Gate" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Middleground"]
+position = Vector2(980, 460)
+color = Color(0.36, 0.25, 0.18, 1)
+polygon = PackedVector2Array(-30, -120, 30, -120, 30, 120, -30, 120)
+
+[node name="AgeMarks" type="Node2D" parent="AreaContainer/Area01_LandingGate/Middleground"]
+position = Vector2(890, 470)
+
+[node name="Mark1" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Middleground/AgeMarks"]
+position = Vector2(0, -24)
+color = Color(0.88, 0.88, 0.85, 1)
+polygon = PackedVector2Array(-8, -2, 8, -2, 8, 2, -8, 2)
+
+[node name="Mark2" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Middleground/AgeMarks"]
+color = Color(0.88, 0.88, 0.85, 1)
+polygon = PackedVector2Array(-8, -2, 8, -2, 8, 2, -8, 2)
+
+[node name="Mark3" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Middleground/AgeMarks"]
+position = Vector2(0, 22)
+color = Color(0.88, 0.88, 0.85, 1)
+polygon = PackedVector2Array(-8, -2, 8, -2, 8, 2, -8, 2)
+
+[node name="Interactables" type="Node2D" parent="AreaContainer/Area01_LandingGate"]
+
+[node name="GateDoor" type="Area2D" parent="AreaContainer/Area01_LandingGate/Interactables"]
+position = Vector2(980, 520)
+script = ExtResource("5")
+display_text = "门锁已经锈死。
+这里不像是最近才被封起来。
+很多年没有人从这扇门经过了。"
+prompt_text = "调查院门"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area01_LandingGate/Interactables/GateDoor"]
+shape = SubResource("InteractShape")
+
+[node name="AgeMarksSpot" type="Area2D" parent="AreaContainer/Area01_LandingGate/Interactables"]
+position = Vector2(880, 510)
+script = ExtResource("5")
+display_text = "三岁。四岁。五岁。
+
+我小时候来过这里。
+而且不止一次。"
+prompt_text = "查看刻痕"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area01_LandingGate/Interactables/AgeMarksSpot"]
+shape = SubResource("InteractShape")
+
+[node name="Foreground" type="Node2D" parent="AreaContainer/Area01_LandingGate"]
+z_index = 5
+
+[node name="Grass1" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Foreground"]
+position = Vector2(350, 596)
+color = Color(0.1, 0.12, 0.1, 0.5)
+polygon = PackedVector2Array(-30, 0, -12, -26, 0, 0, 10, -20, 26, 0)
+
+[node name="Grass2" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/Foreground"]
+position = Vector2(700, 596)
+color = Color(0.1, 0.12, 0.1, 0.5)
+polygon = PackedVector2Array(-26, 0, -10, -22, 2, 0, 14, -26, 30, 0)
+
+[node name="SpawnPoint" type="Marker2D" parent="AreaContainer/Area01_LandingGate"]
+position = Vector2(100, 480)
+
+[node name="SpawnPointRight" type="Marker2D" parent="AreaContainer/Area01_LandingGate"]
+position = Vector2(1030, 480)
+
+[node name="ExitTrigger" type="Area2D" parent="AreaContainer/Area01_LandingGate"]
+position = Vector2(1120, 450)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area01_LandingGate/ExitTrigger"]
+shape = SubResource("TriggerShape")
+
+[node name="Visual" type="Polygon2D" parent="AreaContainer/Area01_LandingGate/ExitTrigger"]
+color = Color(1, 0.5, 0, 0.25)
+polygon = PackedVector2Array(-30, -150, 30, -150, 30, 150, -30, 150)
+
+[node name="EdgeWallLeft" type="StaticBody2D" parent="AreaContainer/Area01_LandingGate"]
+position = Vector2(-20, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area01_LandingGate/EdgeWallLeft"]
+shape = SubResource("EdgeWallShape")
+
+[node name="EdgeWallRight" type="StaticBody2D" parent="AreaContainer/Area01_LandingGate"]
+position = Vector2(1172, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area01_LandingGate/EdgeWallRight"]
+shape = SubResource("EdgeWallShape")
+
+[node name="Area02_BegoniaTree" type="Node2D" parent="AreaContainer"]
+position = Vector2(2000, 0)
+script = ExtResource("3")
+
+[node name="Background" type="Node2D" parent="AreaContainer/Area02_BegoniaTree"]
+
+[node name="Sky" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Background"]
+color = Color(0.8, 0.8, 0.82, 1)
+polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 600, 0, 600)
+
+[node name="CourtWall" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Background"]
+color = Color(0.68, 0.66, 0.66, 1)
+polygon = PackedVector2Array(0, 300, 1152, 300, 1152, 580, 0, 580)
+
+[node name="Mist" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Background"]
+color = Color(0.92, 0.92, 0.95, 0.25)
+polygon = PackedVector2Array(0, 430, 1152, 430, 1152, 560, 0, 560)
+
+[node name="Middleground" type="Node2D" parent="AreaContainer/Area02_BegoniaTree"]
+
+[node name="Ground" type="StaticBody2D" parent="AreaContainer/Area02_BegoniaTree/Middleground"]
+position = Vector2(576, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area02_BegoniaTree/Middleground/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="Visual" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Middleground/Ground"]
+color = Color(0.45, 0.45, 0.48, 1)
+polygon = PackedVector2Array(-576, -20, 576, -20, 576, 20, -576, 20)
+
+[node name="Tree" type="Node2D" parent="AreaContainer/Area02_BegoniaTree/Middleground"]
+position = Vector2(576, 0)
+
+[node name="Trunk" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Middleground/Tree"]
+position = Vector2(0, 450)
+color = Color(0.32, 0.28, 0.26, 1)
+polygon = PackedVector2Array(-28, -130, 28, -130, 28, 130, -28, 130)
+
+[node name="Branch1" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Middleground/Tree"]
+position = Vector2(0, 330)
+rotation = 0.45
+color = Color(0.32, 0.28, 0.26, 1)
+polygon = PackedVector2Array(-130, -5, 0, -5, 0, 5, -130, 5)
+
+[node name="Branch2" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Middleground/Tree"]
+position = Vector2(0, 350)
+rotation = -0.35
+color = Color(0.32, 0.28, 0.26, 1)
+polygon = PackedVector2Array(0, -5, 140, -5, 140, 5, 0, 5)
+
+[node name="Branch3" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Middleground/Tree"]
+position = Vector2(0, 320)
+color = Color(0.32, 0.28, 0.26, 1)
+polygon = PackedVector2Array(-4, -90, 4, -90, 4, 0, -4, 0)
+
+[node name="Cloth1" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Middleground/Tree"]
+position = Vector2(-110, 285)
+color = Color(0.78, 0.75, 0.73, 1)
+polygon = PackedVector2Array(-5, -14, 5, -14, 5, 14, -5, 14)
+
+[node name="Cloth2" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Middleground/Tree"]
+position = Vector2(120, 300)
+color = Color(0.8, 0.72, 0.72, 1)
+polygon = PackedVector2Array(-5, -14, 5, -14, 5, 14, -5, 14)
+
+[node name="Interactables" type="Node2D" parent="AreaContainer/Area02_BegoniaTree"]
+
+[node name="TreeCloth" type="Area2D" parent="AreaContainer/Area02_BegoniaTree/Interactables"]
+position = Vector2(576, 510)
+script = ExtResource("5")
+display_text = "布条曾经应该是红色，如今已经褪成浅灰。
+愿丽娘岁岁平安。
+有人曾在这里为我祈福。"
+prompt_text = "查看树上的布条"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area02_BegoniaTree/Interactables/TreeCloth"]
+shape = SubResource("InteractShape")
+
+[node name="Foreground" type="Node2D" parent="AreaContainer/Area02_BegoniaTree"]
+z_index = 5
+
+[node name="DryBranch" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Foreground"]
+position = Vector2(200, 590)
+color = Color(0.12, 0.1, 0.08, 0.55)
+polygon = PackedVector2Array(-40, 0, -10, -30, 0, -8, 20, -34, 34, 0)
+
+[node name="Grass1" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/Foreground"]
+position = Vector2(900, 596)
+color = Color(0.1, 0.12, 0.1, 0.5)
+polygon = PackedVector2Array(-28, 0, -10, -24, 2, 0, 12, -20, 28, 0)
+
+[node name="SpawnPoint" type="Marker2D" parent="AreaContainer/Area02_BegoniaTree"]
+position = Vector2(100, 480)
+
+[node name="SpawnPointRight" type="Marker2D" parent="AreaContainer/Area02_BegoniaTree"]
+position = Vector2(1030, 480)
+
+[node name="ExitTriggerLeft" type="Area2D" parent="AreaContainer/Area02_BegoniaTree"]
+position = Vector2(30, 450)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area02_BegoniaTree/ExitTriggerLeft"]
+shape = SubResource("TriggerShape")
+
+[node name="Visual" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/ExitTriggerLeft"]
+color = Color(0.3, 0.5, 1, 0.25)
+polygon = PackedVector2Array(-30, -150, 30, -150, 30, 150, -30, 150)
+
+[node name="ExitTrigger" type="Area2D" parent="AreaContainer/Area02_BegoniaTree"]
+position = Vector2(1120, 450)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area02_BegoniaTree/ExitTrigger"]
+shape = SubResource("TriggerShape")
+
+[node name="Visual" type="Polygon2D" parent="AreaContainer/Area02_BegoniaTree/ExitTrigger"]
+color = Color(1, 0.5, 0, 0.25)
+polygon = PackedVector2Array(-30, -150, 30, -150, 30, 150, -30, 150)
+
+[node name="EdgeWallLeft" type="StaticBody2D" parent="AreaContainer/Area02_BegoniaTree"]
+position = Vector2(-20, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area02_BegoniaTree/EdgeWallLeft"]
+shape = SubResource("EdgeWallShape")
+
+[node name="EdgeWallRight" type="StaticBody2D" parent="AreaContainer/Area02_BegoniaTree"]
+position = Vector2(1172, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area02_BegoniaTree/EdgeWallRight"]
+shape = SubResource("EdgeWallShape")
+
+[node name="Area03_MainHouse" type="Node2D" parent="AreaContainer"]
+position = Vector2(4000, 0)
+script = ExtResource("3")
+
+[node name="Background" type="Node2D" parent="AreaContainer/Area03_MainHouse"]
+
+[node name="Sky" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Background"]
+color = Color(0.8, 0.8, 0.82, 1)
+polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 600, 0, 600)
+
+[node name="DistantRoof" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Background"]
+color = Color(0.5, 0.48, 0.5, 1)
+polygon = PackedVector2Array(0, 200, 620, 200, 620, 240, 0, 240)
+
+[node name="Mist" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Background"]
+color = Color(0.92, 0.92, 0.95, 0.25)
+polygon = PackedVector2Array(0, 430, 620, 430, 620, 560, 0, 560)
+
+[node name="Middleground" type="Node2D" parent="AreaContainer/Area03_MainHouse"]
+
+[node name="Ground" type="StaticBody2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+position = Vector2(576, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/Middleground/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="Visual" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/Ground"]
+color = Color(0.45, 0.45, 0.48, 1)
+polygon = PackedVector2Array(-576, -20, 576, -20, 576, 20, -576, 20)
+
+[node name="HouseRoof" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+color = Color(0.33, 0.3, 0.32, 1)
+polygon = PackedVector2Array(600, 240, 1152, 240, 1152, 285, 600, 285)
+
+[node name="HouseWall" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+color = Color(0.58, 0.55, 0.52, 1)
+polygon = PackedVector2Array(620, 285, 1152, 285, 1152, 580, 620, 580)
+
+[node name="CorridorFloor" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+color = Color(0.4, 0.37, 0.35, 1)
+polygon = PackedVector2Array(620, 560, 1152, 560, 1152, 580, 620, 580)
+
+[node name="Pillar1" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+position = Vector2(660, 425)
+color = Color(0.45, 0.38, 0.33, 1)
+polygon = PackedVector2Array(-8, -135, 8, -135, 8, 135, -8, 135)
+
+[node name="Pillar2" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+position = Vector2(900, 425)
+color = Color(0.45, 0.38, 0.33, 1)
+polygon = PackedVector2Array(-8, -135, 8, -135, 8, 135, -8, 135)
+
+[node name="Pillar3" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+position = Vector2(1120, 425)
+color = Color(0.45, 0.38, 0.33, 1)
+polygon = PackedVector2Array(-8, -135, 8, -135, 8, 135, -8, 135)
+
+[node name="MainDoor" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+position = Vector2(760, 460)
+color = Color(0.3, 0.22, 0.16, 1)
+polygon = PackedVector2Array(-36, -120, 36, -120, 36, 120, -36, 120)
+
+[node name="WoodenHorse" type="Node2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+position = Vector2(240, 0)
+
+[node name="Body" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/WoodenHorse"]
+position = Vector2(0, 556)
+color = Color(0.55, 0.4, 0.28, 1)
+polygon = PackedVector2Array(-20, -10, 20, -10, 20, 10, -20, 10)
+
+[node name="Head" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/WoodenHorse"]
+position = Vector2(24, 540)
+color = Color(0.55, 0.4, 0.28, 1)
+polygon = PackedVector2Array(-6, -10, 6, -10, 6, 10, -6, 10)
+
+[node name="Rocker" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/WoodenHorse"]
+position = Vector2(0, 572)
+color = Color(0.45, 0.32, 0.22, 1)
+polygon = PackedVector2Array(-26, -3, 26, -3, 26, 3, -26, 3)
+
+[node name="HerbBed" type="Node2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+position = Vector2(430, 0)
+
+[node name="Bed" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/HerbBed"]
+position = Vector2(0, 585)
+color = Color(0.3, 0.5, 0.3, 1)
+polygon = PackedVector2Array(-80, -10, 80, -10, 80, 10, -80, 10)
+
+[node name="Vine1" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/HerbBed"]
+position = Vector2(-30, 545)
+color = Color(0.16, 0.34, 0.18, 1)
+polygon = PackedVector2Array(-3, -30, 3, -30, 3, 30, -3, 30)
+
+[node name="Vine2" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/HerbBed"]
+position = Vector2(20, 535)
+color = Color(0.16, 0.34, 0.18, 1)
+polygon = PackedVector2Array(-3, -40, 3, -40, 3, 40, -3, 40)
+
+[node name="SideWindowVisual" type="Node2D" parent="AreaContainer/Area03_MainHouse/Middleground"]
+position = Vector2(1020, 0)
+
+[node name="Frame" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/SideWindowVisual"]
+position = Vector2(0, 440)
+color = Color(0.5, 0.56, 0.62, 1)
+polygon = PackedVector2Array(-34, -44, 34, -44, 34, 44, -34, 44)
+
+[node name="Lattice" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/SideWindowVisual"]
+position = Vector2(0, 440)
+color = Color(0.36, 0.42, 0.5, 1)
+polygon = PackedVector2Array(-24, -34, 24, -34, 24, 34, -24, 34)
+
+[node name="VineOnWall" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Middleground/SideWindowVisual"]
+position = Vector2(-50, 470)
+color = Color(0.16, 0.34, 0.18, 1)
+polygon = PackedVector2Array(-3, -60, 3, -60, 3, 60, -3, 60)
+
+[node name="Interactables" type="Node2D" parent="AreaContainer/Area03_MainHouse"]
+
+[node name="MainDoorSpot" type="Area2D" parent="AreaContainer/Area03_MainHouse/Interactables"]
+position = Vector2(760, 520)
+script = ExtResource("5")
+display_text = "藤蔓已经清理干净。
+但门轴似乎被什么东西卡住了。
+正门仍然打不开。"
+prompt_text = "推正门"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/Interactables/MainDoorSpot"]
+shape = SubResource("InteractShape")
+
+[node name="WoodenHorseSpot" type="Area2D" parent="AreaContainer/Area03_MainHouse/Interactables"]
+position = Vector2(240, 545)
+script = ExtResource("5")
+display_text = "一只很小的木马。
+马背已经被磨得很光滑。"
+prompt_text = "查看木马"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/Interactables/WoodenHorseSpot"]
+shape = SubResource("InteractShape")
+
+[node name="HerbBedSpot" type="Area2D" parent="AreaContainer/Area03_MainHouse/Interactables"]
+position = Vector2(430, 560)
+script = ExtResource("5")
+display_text = "其他花草都已经枯死。
+这种藤蔓却仍在生长。
+枝叶散发着熟悉的苦味。"
+prompt_text = "查看药圃"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/Interactables/HerbBedSpot"]
+shape = SubResource("InteractShape")
+
+[node name="SideWindow" type="Area2D" parent="AreaContainer/Area03_MainHouse/Interactables"]
+position = Vector2(1020, 500)
+script = ExtResource("5")
+display_text = "这里到处都能看见相同的山鸟纹。
+不像杜府其他院落的装饰。
+更像属于某一个人的记号。"
+prompt_text = "查看侧窗"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/Interactables/SideWindow"]
+shape = SubResource("InteractShape")
+
+[node name="NPCs" type="Node2D" parent="AreaContainer/Area03_MainHouse"]
+
+[node name="Maid" type="Node2D" parent="AreaContainer/Area03_MainHouse/NPCs"]
+position = Vector2(700, 560)
+script = ExtResource("11")
+dialogue_box_path = NodePath("../../../../DialogueBox")
+talk_interactable_path = NodePath("TalkSpot")
+speaker_name = "丫鬟"
+lines = "（占位）姑娘怎么会到这边院子来。
+（占位）这些年只有我来扫一扫。
+（占位）姑娘要进去的话……侧边那扇窗一直没有闩上。"
+
+[node name="Body" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/NPCs/Maid"]
+color = Color(0.62, 0.55, 0.68, 1)
+polygon = PackedVector2Array(-14, -76, 14, -76, 14, 0, -14, 0)
+
+[node name="Head" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/NPCs/Maid"]
+color = Color(0.75, 0.68, 0.6, 1)
+polygon = PackedVector2Array(-10, -100, 10, -100, 10, -76, -10, -76)
+
+[node name="TalkSpot" type="Area2D" parent="AreaContainer/Area03_MainHouse/NPCs/Maid"]
+position = Vector2(0, -48)
+script = ExtResource("12")
+prompt_text = "同丫鬟说话"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/NPCs/Maid/TalkSpot"]
+shape = SubResource("InteractShape")
+
+[node name="Foreground" type="Node2D" parent="AreaContainer/Area03_MainHouse"]
+z_index = 5
+
+[node name="BambooCurtain" type="Node2D" parent="AreaContainer/Area03_MainHouse/Foreground"]
+position = Vector2(850, 390)
+
+[node name="Strip1" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Foreground/BambooCurtain"]
+position = Vector2(-12, 0)
+color = Color(0.25, 0.2, 0.12, 0.45)
+polygon = PackedVector2Array(-3, -90, 3, -90, 3, 90, -3, 90)
+
+[node name="Strip2" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Foreground/BambooCurtain"]
+position = Vector2(-4, 6)
+color = Color(0.25, 0.2, 0.12, 0.45)
+polygon = PackedVector2Array(-3, -96, 3, -96, 3, 84, -3, 84)
+
+[node name="Strip3" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Foreground/BambooCurtain"]
+position = Vector2(4, -4)
+color = Color(0.25, 0.2, 0.12, 0.45)
+polygon = PackedVector2Array(-3, -86, 3, -86, 3, 96, -3, 96)
+
+[node name="Strip4" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Foreground/BambooCurtain"]
+position = Vector2(12, 0)
+color = Color(0.25, 0.2, 0.12, 0.45)
+polygon = PackedVector2Array(-3, -90, 3, -90, 3, 90, -3, 90)
+
+[node name="Grass1" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/Foreground"]
+position = Vector2(450, 596)
+color = Color(0.1, 0.12, 0.1, 0.5)
+polygon = PackedVector2Array(-28, 0, -12, -24, 0, 0, 12, -22, 28, 0)
+
+[node name="SpawnPoint" type="Marker2D" parent="AreaContainer/Area03_MainHouse"]
+position = Vector2(100, 480)
+
+[node name="ExitTriggerLeft" type="Area2D" parent="AreaContainer/Area03_MainHouse"]
+position = Vector2(30, 450)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/ExitTriggerLeft"]
+shape = SubResource("TriggerShape")
+
+[node name="Visual" type="Polygon2D" parent="AreaContainer/Area03_MainHouse/ExitTriggerLeft"]
+color = Color(0.3, 0.5, 1, 0.25)
+polygon = PackedVector2Array(-30, -150, 30, -150, 30, 150, -30, 150)
+
+[node name="EdgeWallLeft" type="StaticBody2D" parent="AreaContainer/Area03_MainHouse"]
+position = Vector2(-20, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/EdgeWallLeft"]
+shape = SubResource("EdgeWallShape")
+
+[node name="EdgeWallRight" type="StaticBody2D" parent="AreaContainer/Area03_MainHouse"]
+position = Vector2(1172, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaContainer/Area03_MainHouse/EdgeWallRight"]
+shape = SubResource("EdgeWallShape")
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(100, 480)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="AreaFlowController" type="Node" parent="."]
+script = ExtResource("4")
+area_container_path = NodePath("../AreaContainer")
+player_path = NodePath("../Player")
+camera_path = NodePath("../Camera2D")
+fade_rect_path = NodePath("../UI/FadeRect")
+
+[node name="CutsceneTint" type="CanvasLayer" parent="."]
+
+[node name="Tint" type="ColorRect" parent="CutsceneTint"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.42, 0.16, 0.32, 0.55)
+mouse_filter = 2
+
+[node name="MemoryBoxUI" parent="." instance=ExtResource("6")]
+player_path = NodePath("../Player")
+
+[node name="MemoryToast" parent="." instance=ExtResource("7")]
+
+[node name="DialogueBox" parent="." instance=ExtResource("8")]
+player_path = NodePath("../Player")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HintLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 700.0
+offset_bottom = 46.0
+text = "A/D 移动   E 交互   空格 继续对话   Shift 慢时间   Tab 梦奁"
+
+[node name="PromptLabel" type="Label" parent="UI"]
+offset_left = 400.0
+offset_top = 400.0
+offset_right = 760.0
+offset_bottom = 440.0
+horizontal_alignment = 1
+
+[node name="FadeRect" type="ColorRect" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="Cutscenes" type="Node" parent="."]
+
+[node name="MotherMemoryCutscene" type="Node" parent="Cutscenes"]
+script = ExtResource("10")
+player_path = NodePath("../../Player")
+dialogue_box_path = NodePath("../../DialogueBox")
+tint_path = NodePath("../../CutsceneTint/Tint")
+lines = "（占位）药圃的苦味忽然浓起来。
+（占位）有人在檐下低声哼一支曲子。
+（占位）你回过头，院子里什么都没有。"
+
+[node name="StoryDirector" type="Node" parent="."]
+script = ExtResource("9")
+dialogue_box_path = NodePath("../DialogueBox")
+herb_bed_path = NodePath("../AreaContainer/Area03_MainHouse/Interactables/HerbBedSpot")
+side_window_path = NodePath("../AreaContainer/Area03_MainHouse/Interactables/SideWindow")
+mother_cutscene_path = NodePath("../Cutscenes/MotherMemoryCutscene")
+maid_path = NodePath("../AreaContainer/Area03_MainHouse/NPCs/Maid")

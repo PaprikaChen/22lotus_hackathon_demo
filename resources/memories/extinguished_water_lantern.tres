@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="MemoryEntry" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/memory/memory_entry.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/memory/memory_stage.gd" id="2"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="3"]
+
+[sub_resource type="Resource" id="Stage0"]
+script = ExtResource("2")
+stage_title = ""
+description = "柳梦梅曾向我讲过江河与远行的故事。"
+
+[sub_resource type="Resource" id="Stage1"]
+script = ExtResource("2")
+stage_title = ""
+description = "这些故事并非第一次由柳梦梅讲给我听。
+在更久以前，也有人曾一遍遍描述同样的山河。"
+
+[resource]
+script = ExtResource("1")
+id = &"extinguished_water_lantern"
+title = "熄灭的水灯"
+icon = ExtResource("3")
+stages = Array[ExtResource("2")]([SubResource("Stage0"), SubResource("Stage1")])

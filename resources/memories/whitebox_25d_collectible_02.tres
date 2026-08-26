@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="MemoryEntry" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/memory/memory_entry.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/memory/memory_stage.gd" id="2"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="3"]
+
+[sub_resource type="Resource" id="Stage0"]
+script = ExtResource("2")
+stage_title = ""
+description = "白盒测试用信物（乙）。仅用于 2.5D 白盒关卡验证收集与存档，不属于正式剧情。"
+
+[sub_resource type="Resource" id="Stage1"]
+script = ExtResource("2")
+stage_title = ""
+description = "白盒测试用信物（乙）· 第二阶段。用于验证同一信物推进阶段而不产生重复道具。"
+
+[resource]
+script = ExtResource("1")
+id = &"whitebox_25d_collectible_02"
+title = "【测试】白盒信物 乙"
+icon = ExtResource("3")
+stages = Array[ExtResource("2")]([SubResource("Stage0"), SubResource("Stage1")])

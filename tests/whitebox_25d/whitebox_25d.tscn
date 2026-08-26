@@ -1,0 +1,252 @@
+[gd_scene load_steps=11 format=3 uid="uid://livcgruo3bn5"]
+
+[ext_resource type="Script" uid="uid://bygkb0mlgfjpo" path="res://tests/whitebox_25d/whitebox_25d.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/components/memory_pickup.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/components/save_point.gd" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="6"]
+
+[sub_resource type="RectangleShape2D" id="PillarShape"]
+size = Vector2(52, 40)
+
+[sub_resource type="RectangleShape2D" id="TreeShape"]
+size = Vector2(36, 30)
+
+[sub_resource type="CircleShape2D" id="InteractShape"]
+radius = 50.0
+
+[sub_resource type="RectangleShape2D" id="GoalShape"]
+size = Vector2(60, 320)
+
+[node name="Whitebox25D" type="Node2D"]
+script = ExtResource("1")
+level_id = &"whitebox_25d"
+movement_mode = 1
+player_path = NodePath("YSortRoot/Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(300, 400)
+
+[node name="Background" type="Node2D" parent="."]
+
+[node name="SkyBlock" type="Polygon2D" parent="Background"]
+color = Color(0.08, 0.09, 0.16, 1)
+polygon = PackedVector2Array(-400, -400, 3600, -400, 3600, 800, -400, 800)
+
+[node name="BackWall" type="Polygon2D" parent="Background"]
+color = Color(0.14, 0.17, 0.28, 1)
+polygon = PackedVector2Array(-400, 80, 3600, 80, 3600, 240, -400, 240)
+
+[node name="FarBuilding01" type="Polygon2D" parent="Background"]
+color = Color(0.18, 0.22, 0.34, 1)
+polygon = PackedVector2Array(600, 110, 900, 110, 900, 240, 600, 240)
+
+[node name="FarBuilding02" type="Polygon2D" parent="Background"]
+color = Color(0.21, 0.25, 0.37, 1)
+polygon = PackedVector2Array(1900, 60, 2400, 60, 2400, 240, 1900, 240)
+
+[node name="Ground" type="Node2D" parent="."]
+
+[node name="GroundPolygon" type="Polygon2D" parent="Ground"]
+color = Color(0.3, 0.3, 0.34, 1)
+polygon = PackedVector2Array(290, 240, 3190, 240, 3100, 520, 200, 520)
+
+[node name="FarZone" type="Polygon2D" parent="Ground"]
+color = Color(0.52, 0.62, 0.72, 1)
+polygon = PackedVector2Array(290, 240, 3190, 240, 3160, 333, 260, 333)
+
+[node name="MidZone" type="Polygon2D" parent="Ground"]
+color = Color(0.42, 0.44, 0.48, 1)
+polygon = PackedVector2Array(260, 333, 3160, 333, 3130, 427, 230, 427)
+
+[node name="NearZone" type="Polygon2D" parent="Ground"]
+color = Color(0.62, 0.62, 0.66, 1)
+polygon = PackedVector2Array(230, 427, 3130, 427, 3100, 520, 200, 520)
+
+[node name="YSortRoot" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="TestBlockA" type="Node2D" parent="YSortRoot"]
+position = Vector2(1150, 320)
+
+[node name="Visual" type="Polygon2D" parent="YSortRoot/TestBlockA"]
+color = Color(0.86, 0.56, 0.26, 1)
+polygon = PackedVector2Array(-150, -130, 150, -130, 150, 0, -150, 0)
+
+[node name="OriginDot" type="Polygon2D" parent="YSortRoot/TestBlockA" groups=["origin_gizmo"]]
+polygon = PackedVector2Array(0, -7, 7, 0, 0, 7, -7, 0)
+
+[node name="TestPillar" type="Node2D" parent="YSortRoot"]
+position = Vector2(1500, 400)
+
+[node name="Visual" type="Polygon2D" parent="YSortRoot/TestPillar"]
+color = Color(0.82, 0.26, 0.26, 1)
+polygon = PackedVector2Array(-26, -210, 26, -210, 26, 0, -26, 0)
+
+[node name="Body" type="StaticBody2D" parent="YSortRoot/TestPillar"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSortRoot/TestPillar/Body"]
+shape = SubResource("PillarShape")
+
+[node name="OriginDot" type="Polygon2D" parent="YSortRoot/TestPillar" groups=["origin_gizmo"]]
+polygon = PackedVector2Array(0, -7, 7, 0, 0, 7, -7, 0)
+
+[node name="TestTree" type="Node2D" parent="YSortRoot"]
+position = Vector2(1850, 340)
+
+[node name="Crown" type="Polygon2D" parent="YSortRoot/TestTree"]
+color = Color(0.3, 0.55, 0.36, 1)
+polygon = PackedVector2Array(-110, -170, 110, -170, 110, -90, -110, -90)
+
+[node name="Trunk" type="Polygon2D" parent="YSortRoot/TestTree"]
+color = Color(0.45, 0.33, 0.22, 1)
+polygon = PackedVector2Array(-16, -90, 16, -90, 16, 0, -16, 0)
+
+[node name="Body" type="StaticBody2D" parent="YSortRoot/TestTree"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSortRoot/TestTree/Body"]
+shape = SubResource("TreeShape")
+
+[node name="OriginDot" type="Polygon2D" parent="YSortRoot/TestTree" groups=["origin_gizmo"]]
+polygon = PackedVector2Array(0, -7, 7, 0, 0, 7, -7, 0)
+
+[node name="TestBlockB" type="Node2D" parent="YSortRoot"]
+position = Vector2(2050, 490)
+
+[node name="Visual" type="Polygon2D" parent="YSortRoot/TestBlockB"]
+color = Color(0.86, 0.56, 0.26, 1)
+polygon = PackedVector2Array(-45, -70, 45, -70, 45, 0, -45, 0)
+
+[node name="OriginDot" type="Polygon2D" parent="YSortRoot/TestBlockB" groups=["origin_gizmo"]]
+polygon = PackedVector2Array(0, -7, 7, 0, 0, 7, -7, 0)
+
+[node name="Collectible01" type="Area2D" parent="YSortRoot"]
+position = Vector2(2450, 330)
+script = ExtResource("3")
+memory_id = &"whitebox_25d_collectible_01"
+prompt_text = "拾起 白盒信物 甲"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSortRoot/Collectible01"]
+position = Vector2(0, -28)
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="YSortRoot/Collectible01"]
+color = Color(0.95, 0.85, 0.3, 1)
+polygon = PackedVector2Array(0, -56, 18, -32, 0, -8, -18, -32)
+
+[node name="OriginDot" type="Polygon2D" parent="YSortRoot/Collectible01" groups=["origin_gizmo"]]
+polygon = PackedVector2Array(0, -7, 7, 0, 0, 7, -7, 0)
+
+[node name="Collectible02" type="Area2D" parent="YSortRoot"]
+position = Vector2(2760, 470)
+script = ExtResource("3")
+memory_id = &"whitebox_25d_collectible_02"
+prompt_text = "拾起 白盒信物 乙"
+one_shot = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSortRoot/Collectible02"]
+position = Vector2(0, -28)
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="YSortRoot/Collectible02"]
+color = Color(0.95, 0.85, 0.3, 1)
+polygon = PackedVector2Array(0, -56, 18, -32, 0, -8, -18, -32)
+
+[node name="OriginDot" type="Polygon2D" parent="YSortRoot/Collectible02" groups=["origin_gizmo"]]
+polygon = PackedVector2Array(0, -7, 7, 0, 0, 7, -7, 0)
+
+[node name="SavePoint" type="Area2D" parent="YSortRoot"]
+position = Vector2(2600, 400)
+script = ExtResource("4")
+prompt_text = "存档"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSortRoot/SavePoint"]
+position = Vector2(0, -24)
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="YSortRoot/SavePoint"]
+color = Color(0.45, 0.6, 0.95, 1)
+polygon = PackedVector2Array(-16, -48, 16, -48, 16, -16, -16, -16)
+
+[node name="OriginDot" type="Polygon2D" parent="YSortRoot/SavePoint" groups=["origin_gizmo"]]
+polygon = PackedVector2Array(0, -7, 7, 0, 0, 7, -7, 0)
+
+[node name="Goal" type="Area2D" parent="YSortRoot"]
+position = Vector2(3020, 400)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="YSortRoot/Goal"]
+position = Vector2(0, -20)
+shape = SubResource("GoalShape")
+
+[node name="Visual" type="Polygon2D" parent="YSortRoot/Goal"]
+color = Color(0.4, 0.85, 0.5, 1)
+polygon = PackedVector2Array(-24, -120, 24, -120, 24, 0, -24, 0)
+
+[node name="Player" parent="YSortRoot" instance=ExtResource("2")]
+position = Vector2(300, 400)
+move_speed = 250.0
+
+[node name="OriginDot" type="Polygon2D" parent="YSortRoot/Player" groups=["origin_gizmo"]]
+color = Color(1, 0.4, 0.4, 1)
+polygon = PackedVector2Array(0, -7, 7, 0, 0, 7, -7, 0)
+
+[node name="Foreground" type="Node2D" parent="."]
+
+[node name="ForegroundPost" type="Polygon2D" parent="Foreground"]
+color = Color(0.1, 0.1, 0.13, 1)
+polygon = PackedVector2Array(760, 180, 830, 180, 830, 760, 760, 760)
+
+[node name="ForegroundBand" type="Polygon2D" parent="Foreground"]
+color = Color(0.22, 0.22, 0.28, 1)
+polygon = PackedVector2Array(-400, 505, 3600, 505, 3600, 800, -400, 800)
+
+[node name="Boundaries" type="StaticBody2D" parent="."]
+
+[node name="BackBoundary" type="CollisionPolygon2D" parent="Boundaries"]
+polygon = PackedVector2Array(200, 140, 3280, 140, 3280, 240, 200, 240)
+
+[node name="FrontBoundary" type="CollisionPolygon2D" parent="Boundaries"]
+polygon = PackedVector2Array(120, 520, 3200, 520, 3200, 620, 120, 620)
+
+[node name="LeftBoundary" type="CollisionPolygon2D" parent="Boundaries"]
+polygon = PackedVector2Array(290, 240, 200, 520, 100, 520, 190, 240)
+
+[node name="RightBoundary" type="CollisionPolygon2D" parent="Boundaries"]
+polygon = PackedVector2Array(3190, 240, 3290, 240, 3200, 520, 3100, 520)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 380)
+limit_left = 0
+limit_top = 56
+limit_right = 3300
+limit_bottom = 704
+
+[node name="MemoryBoxUI" parent="." instance=ExtResource("5")]
+player_path = NodePath("../YSortRoot/Player")
+
+[node name="MemoryToast" parent="." instance=ExtResource("6")]
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="DebugOverlay" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 640.0
+offset_bottom = 260.0
+
+[node name="ResultLabel" type="Label" parent="UI"]
+offset_left = 280.0
+offset_top = 96.0
+offset_right = 880.0
+offset_bottom = 136.0
+horizontal_alignment = 2
+
+[node name="PromptLabel" type="Label" parent="UI"]
+offset_left = 400.0
+offset_top = 560.0
+offset_right = 760.0
+offset_bottom = 600.0
+horizontal_alignment = 1

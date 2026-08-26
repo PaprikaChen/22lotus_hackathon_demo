@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="MemoryEntry" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/memory/memory_entry.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/memory/memory_stage.gd" id="2"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="3"]
+
+[sub_resource type="Resource" id="Stage0"]
+script = ExtResource("2")
+stage_title = ""
+description = "父亲送来的奇石。"
+
+[sub_resource type="Resource" id="Stage1"]
+script = ExtResource("2")
+stage_title = ""
+description = "这块石头不是父亲买来的。
+有人曾从很远的地方将它带回给我。"
+
+[resource]
+script = ExtResource("1")
+id = &"mountain_stone"
+title = "山纹奇石"
+icon = ExtResource("3")
+stages = Array[ExtResource("2")]([SubResource("Stage0"), SubResource("Stage1")])

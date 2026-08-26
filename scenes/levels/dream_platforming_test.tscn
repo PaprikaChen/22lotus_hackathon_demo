@@ -1,0 +1,96 @@
+[gd_scene load_steps=10 format=3 uid="uid://c2ihv0hwxhmhy"]
+
+[ext_resource type="Script" uid="uid://ds4gp7cwimdal" path="res://scenes/levels/dream_platforming_test.gd" id="1"]
+[ext_resource type="Script" uid="uid://dub6jxx7cc7n1" path="res://scripts/components/slow_time_visual_test.gd" id="2"]
+[ext_resource type="Script" uid="uid://b31254p7g7oqu" path="res://scripts/components/slow_time_debug_ui.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/components/moving_platform.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/components/test_enemy.tscn" id="6"]
+
+[sub_resource type="RectangleShape2D" id="ground"]
+size = Vector2(1100, 40)
+
+[sub_resource type="RectangleShape2D" id="plat"]
+size = Vector2(160, 24)
+
+[sub_resource type="RectangleShape2D" id="death"]
+size = Vector2(2400, 120)
+
+[node name="DreamPlatformingTest" type="Node2D"]
+script = ExtResource("1")
+
+[node name="SlowTimeWorldTint" type="CanvasModulate" parent="."]
+script = ExtResource("2")
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="StaticPlatforms" type="Node2D" parent="World"]
+
+[node name="Ground" type="StaticBody2D" parent="World/StaticPlatforms"]
+position = Vector2(576, 560)
+
+[node name="Visual" type="Polygon2D" parent="World/StaticPlatforms/Ground"]
+color = Color(0.22, 0.2, 0.28, 1)
+polygon = PackedVector2Array(-550, -20, 550, -20, 550, 20, -550, 20)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/StaticPlatforms/Ground"]
+shape = SubResource("ground")
+
+[node name="Platform1" type="StaticBody2D" parent="World/StaticPlatforms"]
+position = Vector2(300, 450)
+
+[node name="Visual" type="Polygon2D" parent="World/StaticPlatforms/Platform1"]
+color = Color(0.3, 0.45, 0.4, 1)
+polygon = PackedVector2Array(-80, -12, 80, -12, 80, 12, -80, 12)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/StaticPlatforms/Platform1"]
+shape = SubResource("plat")
+
+[node name="Platform2" type="StaticBody2D" parent="World/StaticPlatforms"]
+position = Vector2(560, 340)
+
+[node name="Visual" type="Polygon2D" parent="World/StaticPlatforms/Platform2"]
+color = Color(0.3, 0.45, 0.4, 1)
+polygon = PackedVector2Array(-80, -12, 80, -12, 80, 12, -80, 12)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/StaticPlatforms/Platform2"]
+shape = SubResource("plat")
+
+[node name="MovingPlatformMarkerA" type="Marker2D" parent="World"]
+position = Vector2(820, 430)
+
+[node name="MovingPlatformMarkerB" type="Marker2D" parent="World"]
+position = Vector2(1060, 430)
+
+[node name="MovingPlatform" parent="World" instance=ExtResource("5")]
+position = Vector2(820, 430)
+point_a_path = NodePath("../MovingPlatformMarkerA")
+point_b_path = NodePath("../MovingPlatformMarkerB")
+
+[node name="TestEnemy" parent="World" instance=ExtResource("6")]
+position = Vector2(700, 520)
+
+[node name="SpawnPoint" type="Marker2D" parent="World"]
+position = Vector2(120, 470)
+
+[node name="DeathZone" type="Area2D" parent="World"]
+position = Vector2(576, 950)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/DeathZone"]
+shape = SubResource("death")
+
+[node name="Player" parent="." instance=ExtResource("4")]
+position = Vector2(120, 470)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(120, 470)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="DebugUI" type="Label" parent="CanvasLayer"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 360.0
+offset_bottom = 140.0
+text = "Slow Time State: READY"
+script = ExtResource("3")

@@ -1,0 +1,99 @@
+[gd_scene load_steps=8 format=3 uid="uid://bec4bt31shwf5"]
+
+[ext_resource type="Script" uid="uid://bcfupajb5m8sl" path="res://tests/test_dream_gap.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/components/moving_platform.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/components/test_enemy.tscn" id="4"]
+[ext_resource type="Script" uid="uid://o52o7oneb3sm" path="res://tests/helpers/dream_test_spinner.gd" id="5"]
+[ext_resource type="Script" uid="uid://bkfcts3bdhee5" path="res://scripts/components/dream_affected_component.gd" id="6"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(1400, 40)
+
+[node name="TestDreamGap" type="Node2D"]
+script = ExtResource("1")
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(250, 480)
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="Ground" type="StaticBody2D" parent="World"]
+position = Vector2(576, 600)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="Visual" type="Polygon2D" parent="World/Ground"]
+color = Color(0.35, 0.35, 0.4, 1)
+polygon = PackedVector2Array(-700, -20, 700, -20, 700, 20, -700, 20)
+
+[node name="PlatformA" type="Marker2D" parent="World"]
+position = Vector2(700, 450)
+
+[node name="PlatformB" type="Marker2D" parent="World"]
+position = Vector2(950, 450)
+
+[node name="MovingPlatform" parent="World" instance=ExtResource("3")]
+position = Vector2(700, 450)
+point_a_path = NodePath("../PlatformA")
+point_b_path = NodePath("../PlatformB")
+
+[node name="TestEnemy" parent="World" instance=ExtResource("4")]
+position = Vector2(850, 555)
+
+[node name="SpinnerAffected" type="Node2D" parent="World"]
+position = Vector2(350, 300)
+script = ExtResource("5")
+
+[node name="Visual" type="Polygon2D" parent="World/SpinnerAffected"]
+color = Color(0.4, 0.8, 0.5, 1)
+polygon = PackedVector2Array(-40, -6, 40, -6, 40, 6, -40, 6)
+
+[node name="DreamAffectedComponent" type="Node" parent="World/SpinnerAffected"]
+script = ExtResource("6")
+
+[node name="SpinnerBoth" type="Node2D" parent="World"]
+position = Vector2(500, 300)
+script = ExtResource("5")
+
+[node name="Visual" type="Polygon2D" parent="World/SpinnerBoth"]
+color = Color(0.85, 0.6, 0.9, 1)
+polygon = PackedVector2Array(-40, -6, 40, -6, 40, 6, -40, 6)
+
+[node name="DreamAffectedComponent" type="Node" parent="World/SpinnerBoth"]
+script = ExtResource("6")
+effect_type = 2
+
+[node name="SpinnerUnaffected" type="Node2D" parent="World"]
+position = Vector2(650, 300)
+script = ExtResource("5")
+
+[node name="Visual" type="Polygon2D" parent="World/SpinnerUnaffected"]
+color = Color(0.9, 0.9, 0.4, 1)
+polygon = PackedVector2Array(-40, -6, 40, -6, 40, 6, -40, 6)
+
+[node name="RevealOnly" type="Polygon2D" parent="World"]
+position = Vector2(820, 300)
+color = Color(0.6, 0.85, 1, 1)
+polygon = PackedVector2Array(0, -30, 30, 0, 0, 30, -30, 0)
+
+[node name="DreamAffectedComponent" type="Node" parent="World/RevealOnly"]
+script = ExtResource("6")
+effect_type = 1
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(250, 480)
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="StatusLabel" type="Label" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 560.0
+offset_bottom = 140.0

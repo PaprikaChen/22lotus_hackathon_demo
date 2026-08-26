@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="MemoryEntry" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/memory/memory_entry.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/memory/memory_stage.gd" id="2"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="3"]
+
+[sub_resource type="Resource" id="Stage0"]
+script = ExtResource("2")
+stage_title = ""
+description = "长卷调参台测试用信物（丙）。放在方块门之后，用来验证门真的挡住了路。不属于正式剧情。"
+
+[resource]
+script = ExtResource("1")
+id = &"bg_pacing_token_03"
+title = "【测试】长卷信物 丙"
+icon = ExtResource("3")
+stages = Array[ExtResource("2")]([SubResource("Stage0")])

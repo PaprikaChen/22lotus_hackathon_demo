@@ -1,0 +1,13 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# 屏幕录制素材：单个文件 40MB+，不属于源码
+录屏/
+
+# Claude Code 的个人权限设置（.local = 每人一份，不入库）
+.claude/settings.local.json
+
+# OS
+.DS_Store
+Thumbs.db
