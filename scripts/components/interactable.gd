@@ -27,6 +27,14 @@ signal interaction_blocked(player: Node)
 ## is missing, interact() runs the blocked path instead of _on_interact().
 @export var required_flag: StringName = &""
 
+## 需要持有的梦奁信物；留空 = 不看信物。与 required_flag **叠加**，
+## 两个都填就都要满足。
+##
+## 为什么直接问 MemoryManager，而不是要求拾取时顺手写一个 StoryFlag：
+## 那样「持有信物」和「Flag 存在」会变成两份各自持久化的状态，一旦信物通过
+## 别的途径给出（对话奖励、存档迁移）门槛就永远打不开。条件只有一个来源。
+@export var required_memory: StringName = &""
+
 ## Prompt while the requirement is unmet. Empty string keeps prompt_text.
 @export var blocked_prompt_text: String = ""
 
@@ -59,9 +67,11 @@ func interact(player: Node) -> void:
 
 
 func is_requirement_met() -> bool:
-	if required_flag == &"":
-		return true
-	return StoryFlagManager.has_flag(required_flag)
+	if required_flag != &"" and not StoryFlagManager.has_flag(required_flag):
+		return false
+	if required_memory != &"" and not MemoryManager.has_memory(required_memory):
+		return false
+	return true
 
 
 # --- Virtuals for subclasses --------------------------------------------------

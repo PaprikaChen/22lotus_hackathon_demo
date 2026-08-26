@@ -13,6 +13,9 @@
   - `SaveManager` → `scripts/autoload/save_manager.gd`
   - `WorldTimeManager` → `scripts/autoload/world_time_manager.gd`
   - `StoryFlagManager` → `scripts/autoload/story_flag_manager.gd`
+  - `MemoryManager` → `scripts/autoload/memory_manager.gd`
+  - `GalleryManager` → `scripts/autoload/gallery_manager.gd`（画廊 CG 收集，
+    **跨存档槽**，落盘在全局 `user://gallery.json`，不进存档槽格式）
   - `_mcp_game_helper` → godot_ai 插件基础设施，勿动。
 - 已实现并可运行的系统：
   - 玩家平台移动：`scenes/player/player.gd`（CharacterBody2D，移动/跳跃/重力
@@ -79,7 +82,18 @@
   剧情因果链集中在那里。首个实现：
   `scenes/levels/old_courtyard_story_director.gd`。详见第 5.5 节。
 - 正式交互物组件：`scripts/components/` 下的 `story_door.gd`（StoryDoor）、
-  `memory_pickup.gd`、`flag_pickup.gd`、`save_point.gd`、`text_interactable.gd`。
+  `memory_pickup.gd`、`flag_pickup.gd`、`save_point.gd`、`text_interactable.gd`、
+  `level_exit.gd`（去下一关）、`follow_camera.gd`（横版跟随相机）。
+  门槛（`required_flag` / `required_memory`，两个都填就都要满足）在
+  `Interactable` **基类**里，不要在子类里重复实现。
+- 正式关卡：`courtyard_01` / `courtyard_02`（共用关卡脚本
+  `scenes/levels/courtyard_level.gd`，各有自己的 StoryDirector）。
+  新游戏入口 = `SaveManager.NEW_GAME_SCENE_PATH` → courtyard_01，
+  之前先播 `PROLOGUE_SCENE_PATH`（前情提要）。旧院降级为参考实现。
+- 玩家表现层：`scenes/player/player_visual.gd`（PlayerVisual）——只听
+  `state_changed` / `direction_changed`，把状态映射到动画、朝向映射到 `flip_h`。
+  **移动逻辑不得依赖动画资源名**，映射表只存在于这个文件。素材没接上时自动
+  退化为灰盒 Polygon2D。
   `tests/helpers/` 只剩纯测试脚本，正式关卡不再从测试目录引用实现。
 - **尚未实现**（不要假装存在，也不要在没有任务要求时顺手创建）：
   SceneManager（场景切换目前直接使用 `get_tree().change_scene_to_file()`）、
@@ -346,6 +360,9 @@ components / props）、`scripts/`（autoload / components / globals）、
 | 新 DreamGap 显形物体 | `DreamAffectedComponent` + `effect_type = VISUAL_REVEAL`（或 BOTH）；自定义表现关掉 `auto_apply_reveal` 听 `reveal_changed` |
 | 新剧情交互物 | 继承 `Interactable`，重写 `_on_interact()`，不写进玩家脚本 |
 | 新记忆收集物 | `MemoryPickup`（`scripts/components/`，`one_shot = true`）；**不要**再配一个 `got_xxx` Flag |
+| 新的画廊 CG | `resources/cg/` 加一个 `CGEntry` `.tres`（自动注册）；在 Director 里 `GalleryManager.unlock_cg(id)` |
+| 新关卡（横版连续滚动） | 复制 `courtyard_01.tscn`，换背景 / Props / Director；相机用 `FollowCamera2D`，出口用 `LevelExit` |
+| 关卡禁跳跃 | 关卡根节点设 `player_can_jump = false`（LevelBase 会下发给玩家），**不要**新增 MovementMode |
 | 新的门 | `StoryDoor`（`scripts/components/`）：`required_flag` 和 / 或 `required_memory`，两者叠加 |
 | 新剧情节点 | 写进该关的 `StoryDirector`：一个 `_on_<事件>()` + 一个 `_apply_<节点>()`，后者进 `_restore_story_state()` |
 | 新演出 / 幻觉 | 继承 `Cutscene`，只写 `_perform()`，演完调 `finish()`；剧情后果交给 Director |

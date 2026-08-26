@@ -3,8 +3,8 @@
 [ext_resource type="Script" uid="uid://drlhg11e1c1uo" path="res://tests/bg_pacing/bg_pacing_lab.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Texture2D" uid="uid://bkfo4i5nk1nvy" path="res://assets/art/backgrounds/testbg.jpg" id="3"]
-[ext_resource type="Script" path="res://scripts/components/memory_pickup.gd" id="4"]
-[ext_resource type="Script" path="res://scripts/components/story_door.gd" id="5"]
+[ext_resource type="Script" uid="uid://de4b8hy4gkxhc" path="res://scripts/components/memory_pickup.gd" id="4"]
+[ext_resource type="Script" uid="uid://vovq2ffpvje1" path="res://scripts/components/story_door.gd" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="7"]
 

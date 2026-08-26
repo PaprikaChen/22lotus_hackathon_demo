@@ -22,6 +22,7 @@ WorldTimeManager="*res://scripts/autoload/world_time_manager.gd"
 StoryFlagManager="*res://scripts/autoload/story_flag_manager.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 MemoryManager="*res://scripts/autoload/memory_manager.gd"
+GalleryManager="*res://scripts/autoload/gallery_manager.gd"
 
 [editor_plugins]
 

@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" uid="uid://bygkb0mlgfjpo" path="res://tests/whitebox_25d/whitebox_25d.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
-[ext_resource type="Script" path="res://scripts/components/memory_pickup.gd" id="3"]
-[ext_resource type="Script" path="res://scripts/components/save_point.gd" id="4"]
+[ext_resource type="Script" uid="uid://de4b8hy4gkxhc" path="res://scripts/components/memory_pickup.gd" id="3"]
+[ext_resource type="Script" uid="uid://t0yv2yxpm5o6" path="res://scripts/components/save_point.gd" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="6"]
 

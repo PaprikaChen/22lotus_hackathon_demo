@@ -1,8 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3 uid="uid://da72jjne7mxam"]
 
-[ext_resource type="Script" path="res://scenes/levels/main_house_interior.gd" id="1"]
+[ext_resource type="Script" uid="uid://frw5rtjfujwj" path="res://scenes/levels/main_house_interior.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
-[ext_resource type="Script" path="res://scripts/components/text_interactable.gd" id="3"]
+[ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="6"]
@@ -55,15 +55,15 @@ polygon = PackedVector2Array(-576, -20, 576, -20, 576, 20, -576, 20)
 position = Vector2(-20, 400)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/EdgeWallLeft"]
-shape = SubResource("GroundShape")
 rotation = 1.5708
+shape = SubResource("GroundShape")
 
 [node name="EdgeWallRight" type="StaticBody2D" parent="World"]
 position = Vector2(1172, 400)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/EdgeWallRight"]
-shape = SubResource("GroundShape")
 rotation = 1.5708
+shape = SubResource("GroundShape")
 
 [node name="Interactables" type="Node2D" parent="."]
 

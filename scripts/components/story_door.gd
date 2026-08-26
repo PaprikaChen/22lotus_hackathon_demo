@@ -6,17 +6,10 @@ extends Interactable
 ##   Visual                     CanvasItem，开门后淡出到 opened_alpha
 ##   Blocker/CollisionShape2D   StaticBody2D 的碰撞，开门后禁用
 ##
-## 门槛：基类的 `required_flag` 与本类的 `required_memory` **叠加**，
-## 两个都填就都要满足；都留空则永远可开。
-##
-## 为什么信物门槛直接问 MemoryManager，而不是要求拾取时顺手写一个 StoryFlag：
-## 那样“持有信物”和“Flag 存在”会变成两份各自持久化的状态，一旦信物通过别的
-## 途径给出（对话奖励、存档迁移）门就打不开了。条件本身只有一个来源。
+## 门槛全部由基类 `Interactable` 处理（`required_flag` / `required_memory`，
+## 两个都填就都要满足）。本类只负责「开门这件事怎么做」。
 
 signal opened
-
-## 需要持有的梦奁信物 id；留空表示不看信物。
-@export var required_memory: StringName = &""
 
 ## 开门后视觉保留的不透明度（0 = 完全消失）。
 @export var opened_alpha: float = 0.15
@@ -29,12 +22,6 @@ func is_open() -> bool:
 
 
 # --- 门槛 ---------------------------------------------------------------------
-
-func is_requirement_met() -> bool:
-	if not super():
-		return false
-	return required_memory == &"" or MemoryManager.has_memory(required_memory)
-
 
 ## 开着的门不再是交互目标，提示语也就不会继续挂在屏幕上。
 func can_interact(player: Node) -> bool:

@@ -30,6 +30,13 @@ editor; automated checks print `[TEST:*] PASS/FAIL` lines to the output.
   工作。纯几何素材，不是正式关卡内容。手动：A/D 左右，W/S 前后，E 交互，
   F1 调试叠层，F2 Y Sort 原点标记。
 
+- `test_courtyard_01.tscn` — 第一个正式关卡与新流程的回归：禁跳跃下发、
+  A/D 行走与朝向翻转、**相机贴边**（中段人物居中；到左右边缘画面停住、人物
+  继续走）、边界墙、E 调查走共用对话框、梦奁信物照常拾取、出口的信物门槛、
+  前情提要逐段推进、画廊解锁 + NEW 角标 + 全局落盘。
+  注意：相机断言按**视口宽度**推算贴边位置，不能写死像素——headless 是
+  64×64 假窗口，写死值根本进不了钳制区。
+
 - `bg_pacing/bg_pacing_lab.tscn` — 手感调参台（不是关卡）：一整张长幅背景
   草图 `assets/art/backgrounds/testbg.jpg` + 一条地面碰撞体 + 现有玩家方块。
   运行时可调背景缩放、人物体型、移动速度、相机 zoom、地面线高度，HUD 实时

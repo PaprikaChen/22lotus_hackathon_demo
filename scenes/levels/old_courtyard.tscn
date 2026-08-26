@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://bby0xx7bi5oyr"]
+[gd_scene load_steps=17 format=3 uid="uid://bby0xx7bi5oyr"]
 
 [ext_resource type="Script" uid="uid://ct4swt7kigi7m" path="res://scenes/levels/old_courtyard.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -8,10 +8,10 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
-[ext_resource type="Script" path="res://scenes/levels/old_courtyard_story_director.gd" id="9"]
-[ext_resource type="Script" path="res://scenes/levels/old_courtyard_mother_cutscene.gd" id="10"]
-[ext_resource type="Script" path="res://scripts/narrative/story_npc.gd" id="11"]
-[ext_resource type="Script" path="res://scripts/components/interactable.gd" id="12"]
+[ext_resource type="Script" uid="uid://bbw4kdurtfmw8" path="res://scenes/levels/old_courtyard_story_director.gd" id="9"]
+[ext_resource type="Script" uid="uid://db2tspjbf8mxp" path="res://scenes/levels/old_courtyard_mother_cutscene.gd" id="10"]
+[ext_resource type="Script" uid="uid://cv0ch3or80fr8" path="res://scripts/narrative/story_npc.gd" id="11"]
+[ext_resource type="Script" uid="uid://cynky25i23yb" path="res://scripts/components/interactable.gd" id="12"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(1152, 40)
@@ -555,8 +555,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.42, 0.16, 0.32, 0.55)
 mouse_filter = 2
+color = Color(0.42, 0.16, 0.32, 0.55)
 
 [node name="MemoryBoxUI" parent="." instance=ExtResource("6")]
 player_path = NodePath("../Player")
@@ -593,12 +593,12 @@ color = Color(0, 0, 0, 0)
 
 [node name="MotherMemoryCutscene" type="Node" parent="Cutscenes"]
 script = ExtResource("10")
-player_path = NodePath("../../Player")
 dialogue_box_path = NodePath("../../DialogueBox")
 tint_path = NodePath("../../CutsceneTint/Tint")
 lines = "（占位）药圃的苦味忽然浓起来。
 （占位）有人在檐下低声哼一支曲子。
 （占位）你回过头，院子里什么都没有。"
+player_path = NodePath("../../Player")
 
 [node name="StoryDirector" type="Node" parent="."]
 script = ExtResource("9")

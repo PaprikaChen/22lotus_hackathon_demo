@@ -63,17 +63,36 @@
 
 ---
 
-## 2. 全局层：四个 Autoload
+## 2. 全局层：五个 Autoload
 
 注册顺序（`project.godot`）：`SaveManager` → `WorldTimeManager` →
-`StoryFlagManager` → `_mcp_game_helper`（插件） → `MemoryManager`。
+`StoryFlagManager` → `_mcp_game_helper`（插件） → `MemoryManager` →
+`GalleryManager`。
 
-| Autoload | 拥有 | **不**拥有 | 落盘字段 |
+| Autoload | 拥有 | **不**拥有 | 落盘位置 |
 | --- | --- | --- | --- |
-| `SaveManager` | 全部 `user://` 文件 I/O、槽位、版本迁移、当前存档内存副本 | 任何游戏逻辑 | 整个文件 |
+| `SaveManager` | 全部 `user://` 文件 I/O、槽位、版本迁移、当前存档内存副本、跨槽全局存储 | 任何游戏逻辑 | 整个文件 |
 | `WorldTimeManager` | DreamGap 状态机、`world_time_scale` | 表现、玩家、对象列表 | 无（临时状态不入档） |
-| `StoryFlagManager` | 剧情 Flag（persistent / session 两层） | 文案、条件判断 | `story_flags` |
-| `MemoryManager` | 信物运行时状态 + 静态资源注册表 | 文案（在 `.tres`）、UI | `memories` |
+| `StoryFlagManager` | 剧情 Flag（persistent / session 两层） | 文案、条件判断 | 槽位字段 `story_flags` |
+| `MemoryManager` | 梦奁信物运行时状态 + 静态资源注册表 | 文案（在 `.tres`）、UI | 槽位字段 `memories` |
+| `GalleryManager` | 画廊 CG 解锁 / NEW 角标 + 静态资源注册表 | 文案与图（在 `.tres`）、UI、剧情判断 | **全局** `user://gallery.json` |
+
+### 为什么画廊不进存档槽
+
+画廊入口在**主菜单**，那时没有任何槽位被载入——CG 状态若在槽里，从主菜单
+进画廊只能是空的。所以 CG 收集是**跨三个槽共享**的账号级数据，存在独立的
+全局文件里：不进 `REQUIRED_KEYS`、不参与 `save_version` 迁移、删存档不丢收集。
+
+`GalleryManager` 自己不碰文件（项目硬规则），走 `SaveManager` 的一组通用
+全局存储 API：
+
+```gdscript
+SaveManager.read_global("gallery")        # → Dictionary，坏文件返回 {}
+SaveManager.write_global("gallery", data) # 与槽位共用 .tmp → 替换的安全写入
+```
+
+**谁解锁 CG：StoryDirector。** CG 解锁是剧情后果，和「写 Flag / 推进信物」
+同一类，写在 Director 的 `_on_*` 里。不要让 Cutscene 或 UI 自己解锁。
 
 ### 汇总关系
 
@@ -208,6 +227,8 @@ E 键调 `interact()`。输入锁激活期间不触发。
 | --- | --- | --- |
 | `text_interactable.gd` | 纯文本调查物，发 `text_requested` | `scripts/components/` |
 | `flag_pickup.gd` | 拾取 → 写 StoryFlag | `scripts/components/` |
+| `level_exit.gd` | 通往下一关的出口（门槛同上；切场景由关卡做） | `scripts/components/` |
+| `follow_camera.gd` | 横版跟随相机，靠 Camera2D 内建 limit 实现"贴边停住" | `scripts/components/` |
 | `story_door.gd` | 门：Flag 门槛 + 信物门槛，可被 Director 直接开关 | `scripts/components/` |
 | `memory_pickup.gd` | 拾取 / 推进梦奁信物 | `scripts/components/` |
 | `save_point.gd` | 存档点 | `scripts/components/` |
@@ -342,7 +363,25 @@ WorldTimeManager 不知道它存在。
 
 ## 8. 关键数据流
 
-### 启动 → 新游戏
+### 启动 → 新游戏（含前情提要）
+
+```
+MainMenu ─[新游戏]→ SaveSlotMenu(new) → create_new_save()
+                                          │  current_scene 写的是关卡
+                                          ▼
+                                    PrologueScreen  ← 黑屏+居中文字，Space 逐段
+                                          │
+                                          ▼
+                                     courtyard_01 ──LevelExit──→ courtyard_02
+MainMenu ─[读取存档]→ SaveSlotMenu(load) → load_game() → 存档里的 current_scene
+MainMenu ─[画廊]────→ GalleryScreen（不需要任何槽位）
+```
+
+**「前情提要只在新游戏播一次」是流程保证的，不靠 Flag。** 读档分支直接跳
+`current_scene`，而新档里写的是关卡而不是前情提要——所以在前情提要期间退出
+再读档会直接进关卡。
+
+### 旧的启动 → 新游戏
 
 ```
 MainMenu ──"Start New Game"──▶ SaveSlotMenu(mode="new")

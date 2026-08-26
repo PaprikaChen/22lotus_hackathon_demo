@@ -8,7 +8,11 @@ extends Node
 
 const SLOT_COUNT: int = 3
 ## Scene a NEW game starts in — the first real chapter level, never a test room.
-const NEW_GAME_SCENE_PATH: String = "res://scenes/levels/old_courtyard.tscn"
+const NEW_GAME_SCENE_PATH: String = "res://scenes/levels/courtyard_01.tscn"
+## 新游戏先播前情提要，播完再进 NEW_GAME_SCENE_PATH。
+## 注意：存档里的 current_scene 写的是 NEW_GAME_SCENE_PATH 而不是这个——
+## 前情提要不是一个"可以存档的地方"，中途退出再读档应该直接进关卡。
+const PROLOGUE_SCENE_PATH: String = "res://scenes/ui/prologue.tscn"
 ## Placeholder coordinates for a brand-new save. They are deliberately NOT
 ## used for placement: a new save also carries use_level_spawn = true, and
 ## LevelBase then honours the level's own SpawnPoint instead. Keeping real
@@ -101,10 +105,9 @@ func save_game(slot_id: int, save_data: Dictionary) -> bool:
 	data["save_slot_id"] = slot_id
 	data["last_saved_at"] = _now_string()
 	data["save_version"] = SAVE_VERSION
-	# Any real save carries real coordinates, so the new-game "use the level's
-	# own SpawnPoint" hint is always cleared here. Doing it centrally means no
-	# save point has to remember.
-	data["use_level_spawn"] = false
+	# 默认清掉「用关卡自己的 SpawnPoint」这个提示——绝大多数存档都带真坐标，
+	# 存档点不需要记得这件事。只有明确传了 true 的调用者（跨关卡切换）才保留。
+	data["use_level_spawn"] = bool(save_data.get("use_level_spawn", false))
 	if not data.has("created_at"):
 		data["created_at"] = data["last_saved_at"]
 	# Systems that own persistent state contribute it here; callers never
@@ -116,6 +119,25 @@ func save_game(slot_id: int, save_data: Dictionary) -> bool:
 	if slot_id == current_slot:
 		current_save = data.duplicate(true)
 	return true
+
+
+## 便捷写档：把「当前场景 + 玩家坐标」写进正在使用的槽位，其余字段沿用
+## current_save。存档点和关卡自动存共用这一条路径，免得各处自己拼字典。
+##
+## 没有活动槽位时（F6 单开场景、headless 测试）返回 false 且**不写盘**——
+## 测试跑动永远碰不到真实存档文件。
+## use_level_spawn 传 true 表示「坐标不作数，进关用关卡自己的 SpawnPoint」——
+## 跨关卡切换时用它，否则下一关会被上一关写进去的坐标钉在错误位置。
+func save_progress(scene_path: String, player_position: Vector2,
+		use_level_spawn: bool = false) -> bool:
+	if current_slot == -1:
+		return false
+	var data := current_save.duplicate(true)
+	data["current_scene"] = scene_path
+	data["player_position_x"] = player_position.x
+	data["player_position_y"] = player_position.y
+	data["use_level_spawn"] = use_level_spawn
+	return save_game(current_slot, data)
 
 
 func load_game(slot_id: int) -> Dictionary:
@@ -176,6 +198,39 @@ func get_save_summary(slot_id: int) -> Dictionary:
 	return summary
 
 
+# --- 跨存档槽的全局数据 --------------------------------------------------------
+# 画廊 CG 收集（将来还可能是设置、成就）与三个存档槽完全无关：不进
+# REQUIRED_KEYS、不参与 save_version 迁移、删存档不影响它。放在这里是因为
+# 「所有文件 I/O 只在 SaveManager 内」这条规则，顺带复用临时文件安全写入。
+
+## 读一个全局存储。文件不存在或损坏时返回 {}，永不抛错。
+func read_global(store_name: String) -> Dictionary:
+	var path := _global_path(store_name)
+	if not FileAccess.file_exists(path):
+		return {}
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		push_warning("SaveManager: 打不开全局存储 %s (err %d)" % [
+			path, FileAccess.get_open_error()])
+		return {}
+	var text := f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(text)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_warning("SaveManager: 全局存储 %s 损坏，按空处理。" % path)
+		return {}
+	return parsed
+
+
+## 写一个全局存储。走和存档槽同一条 .tmp → 替换路径，写失败不破坏原文件。
+func write_global(store_name: String, data: Dictionary) -> bool:
+	return _write_json_safely(_global_path(store_name), data)
+
+
+func _global_path(store_name: String) -> String:
+	return "user://%s.json" % store_name
+
+
 ## Utility shared by the UI: seconds -> "MM:SS" (or "H:MM:SS").
 func format_play_time(seconds: float) -> String:
 	var total := int(max(0.0, seconds))
@@ -205,7 +260,12 @@ func _now_string() -> String:
 ## Writes to a temp file first and only then replaces the real slot file,
 ## so a failed/interrupted write can never destroy an existing valid save.
 func _write_file(slot_id: int, data: Dictionary) -> bool:
-	var path := _slot_path(slot_id)
+	return _write_json_safely(_slot_path(slot_id), data)
+
+
+## 安全写入：先写 .tmp 再替换正式文件，写失败不破坏已有文件。
+## 存档槽和全局存储共用这一条路径。
+func _write_json_safely(path: String, data: Dictionary) -> bool:
 	var tmp_path := path + ".tmp"
 	var f := FileAccess.open(tmp_path, FileAccess.WRITE)
 	if f == null:

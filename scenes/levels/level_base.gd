@@ -20,6 +20,10 @@ signal level_completed
 ## every existing level side-scrolling.
 @export var movement_mode: MovementMode.Mode = MovementMode.Mode.SIDE_SCROLL
 
+## 本关是否允许跳跃。和 movement_mode 一样属于关卡配置，由关卡声明、进关时
+## 下发给玩家。默认 true，所有既有关卡行为不变。
+@export var player_can_jump: bool = true
+
 ## The player node in this level (optional — UI-only scenes leave it unset).
 @export var player_path: NodePath
 
@@ -35,6 +39,7 @@ func _ready() -> void:
 	StoryFlagManager.clear_session()
 	_player = get_node_or_null(player_path) as Node2D
 	_apply_movement_mode()
+	_apply_player_abilities()
 	_place_player()
 	on_level_started()
 	level_started.emit()
@@ -73,6 +78,12 @@ func complete_level() -> void:
 func _apply_movement_mode() -> void:
 	if _player != null and _player.has_method("set_movement_mode"):
 		_player.set_movement_mode(movement_mode)
+
+
+## 关卡能力开关。与 _apply_movement_mode() 并列，不改它的签名。
+func _apply_player_abilities() -> void:
+	if _player != null and &"jump_enabled" in _player:
+		_player.jump_enabled = player_can_jump
 
 
 func _place_player() -> void:

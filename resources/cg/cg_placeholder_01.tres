@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CGEntry" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/gallery/cg_entry.gd" id="1"]
+[ext_resource type="Texture2D" path="res://icon.svg" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"cg_placeholder_01"
+title = "【占位】别院的门"
+image = ExtResource("2")
+caption = "（占位）画廊管线验证用。真正的 CG 交付后替换这张资源的 image 与文案。"
+sort_order = 1

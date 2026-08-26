@@ -1,3 +1,4 @@
+class_name Player
 extends CharacterBody2D
 ## Graybox platformer player — the coordinating body only.
 ##
@@ -34,6 +35,11 @@ enum State { IDLE, RUN, JUMP, FALL, DISABLED, INTERACT }
 ## every existing scene on the original side-scrolling behaviour.
 @export var movement_mode: MovementMode.Mode = MovementMode.Mode.SIDE_SCROLL:
 	set = set_movement_mode
+
+## 本关是否允许跳跃。由关卡通过 LevelBase 的 player_can_jump 下发。
+## 刻意做成独立布尔而不是新的 MovementMode：它和移动模式正交——
+## 2.5D 关卡本来就没有跳跃，横版关卡里"纯步行探索"也是一种合法配置。
+@export var jump_enabled: bool = true
 
 @export var move_speed: float = 300.0
 @export var acceleration: float = 2000.0
@@ -199,7 +205,7 @@ func _process_side_scroll(delta: float, input_allowed: bool) -> void:
 	# Jump (rising edge while grounded). Edge state is tracked even while
 	# locked so holding jump through an unlock cannot fire a stale press.
 	var jump_pressed := Input.is_action_pressed("jump")
-	if input_allowed and jump_pressed and not _jump_held and is_on_floor():
+	if input_allowed and jump_enabled and jump_pressed and not _jump_held and is_on_floor():
 		velocity.y = jump_velocity
 	_jump_held = jump_pressed
 
@@ -240,6 +246,12 @@ func _process_depth(delta: float, input_allowed: bool) -> void:
 ## Split out so the speed relationship is testable without injecting keys.
 func get_depth_velocity_target(input: Vector2) -> Vector2:
 	return Vector2(input.x * move_speed, input.y * depth_move_speed)
+
+
+## 当前朝向：-1 = 左，+1 = 右。表现层进场时需要先对齐一次，
+## 不能只依赖 direction_changed（那是变化时才发）。
+func get_facing() -> int:
+	return _facing
 
 
 func _update_facing(new_facing: int) -> void:

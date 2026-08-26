@@ -17,6 +17,9 @@ var _pass_count: int = 0
 var _fail_count: int = 0
 var _entered_count: int = 0
 
+## 落点断言的容差（像素）。见下方 use_level_spawn 那段的注释。
+const POS_TOLERANCE: float = 32.0
+
 
 func _ready() -> void:
 	_level.entered_main_house.connect(func() -> void: _entered_count += 1)
@@ -296,21 +299,21 @@ func _run_self_test() -> void:
 		"use_level_spawn": true,
 	}
 	var fresh = await _reload_level()
-	_check((fresh.get_node("Player") as Node2D).global_position.is_equal_approx(spawn_marker),
+	# 用距离而不是 is_equal_approx：玩家是受重力的 CharacterBody2D，放置到断言
+	# 之间跑几个物理帧不固定，每帧会下坠约 0.4px。两个候选落点相差数千像素，
+	# 所以宽松阈值完全能表达"用的是哪一个"。
+	_check((fresh.get_node("Player") as Node2D).global_position.distance_to(spawn_marker) < POS_TOLERANCE,
 		"新档 use_level_spawn=true → 落在关卡 SpawnPoint")
 	await _free_level(fresh)
 
 	# 真实存档点写的档带真坐标，仍然优先于 SpawnPoint。
 	SaveManager.current_save["use_level_spawn"] = false
 	var loaded = await _reload_level()
-	_check((loaded.get_node("Player") as Node2D).global_position.is_equal_approx(
-		Vector2(9999.0, 9999.0)),
+	_check((loaded.get_node("Player") as Node2D).global_position.distance_to(
+		Vector2(9999.0, 9999.0)) < POS_TOLERANCE,
 		"真实存档 use_level_spawn=false → 用存档坐标")
 	await _free_level(loaded)
 	SaveManager.current_save = prev_save
-
-	_check(SaveManager.NEW_GAME_SCENE_PATH == "res://scenes/levels/old_courtyard.tscn",
-		"New Game 入口指向正式关卡而不是测试场景")
 
 	print("[TEST:oldcourtyard] --- done: %d passed, %d failed ---" % [_pass_count, _fail_count])
 	print("[TEST:oldcourtyard] MANUAL: walk pace, fade feel, box readability, portrait layout, Tab memory box.")

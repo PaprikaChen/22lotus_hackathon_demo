@@ -82,7 +82,10 @@ func _start_new_game(slot_id: int) -> void:
 	if not SaveManager.create_new_save(slot_id):
 		push_error("SaveSlotMenu: failed to create a save in slot %d" % slot_id)
 		return
-	get_tree().change_scene_to_file(SaveManager.NEW_GAME_SCENE_PATH)
+	# 新游戏先播前情提要，它播完自己去 NEW_GAME_SCENE_PATH。
+	# 存档里的 current_scene 写的是关卡而不是前情提要，所以中途退出再读档
+	# 会直接进关卡，不会重看一遍。
+	get_tree().change_scene_to_file(SaveManager.PROLOGUE_SCENE_PATH)
 
 
 func _load_existing_game(slot_id: int) -> void:

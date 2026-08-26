@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/player/dream_gap_ability.gd" id="2"]
 [ext_resource type="Script" path="res://scenes/player/interaction_detector.gd" id="3"]
+[ext_resource type="Script" path="res://scenes/player/player_visual.gd" id="4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
 size = Vector2(32, 48)
@@ -19,6 +20,15 @@ script = ExtResource("1")
 [node name="Visual" type="Polygon2D" parent="."]
 color = Color(0.45, 0.82, 1, 1)
 polygon = PackedVector2Array(-16, -48, 16, -48, 16, 0, -16, 0)
+
+[node name="PlayerVisual" type="Node2D" parent="."]
+script = ExtResource("4")
+player_path = NodePath("..")
+sprite_path = NodePath("Sprite")
+graybox_path = NodePath("../Visual")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="PlayerVisual"]
+centered = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -24)
