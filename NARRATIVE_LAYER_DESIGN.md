@@ -4,7 +4,8 @@
 **当前真实代码**（核对于 2026-08-26）做的落地设计。
 
 > **状态：已实施（2026-08-26）。** 六步全部落地并通过回归。
-> Git 初始化（原计划 13.1 / 完成标准第 1 条）按指示跳过，其余 P0/P1 全部完成。
+> 原计划 13.1（Git 初始化）当时按指示跳过，已于同日补上：baseline commit +
+> 私有远端 `PaprikaChen/22lotus_hackathon_demo`。P0/P1 现已全部完成。
 > 架构结论已并入 `ARCHITECTURE.md` 第 5 节与 `AGENTS.md` 第 5.5 节；
 > 本文件保留为**决策记录**（为什么这样设计、代价是什么），实施细节以那两份为准。
 
@@ -533,7 +534,7 @@ scenes/levels/old_courtyard_story_director.gd  ~150 行  第一个 Director
 
 | 标准 | 本设计如何满足 |
 | --- | --- |
-| Git baseline | **本轮跳过**（按你的指示） |
+| Git baseline | ✅ `git init` + baseline commit + 私有远端（当轮之后补上） |
 | New Game 不进 test_integration | §7，含出生点修复 |
 | 测试不写正式 Flag namespace | §6.3，4 个 Flag 改名 |
 | old_courtyard 有独立 StoryDirector | §3 + §9 |

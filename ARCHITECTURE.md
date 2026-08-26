@@ -415,15 +415,17 @@ tests/              灰盒测试房 + helpers/（交互物参考实现）
 
 按需要处理的紧迫程度排序。这些都是核对代码时发现的**事实**，不是猜测。
 
-### 10.1 项目不在版本控制下 —— 最高优先级
+### 10.1 版本控制（已完成 2026-08-26）
 
-`.gitignore` 和 `.gitattributes` 都在，但**没有 `.git` 目录**，
-`git rev-parse` 返回 "not a git repository"。这意味着：
+项目已进入 Git 管理，baseline commit 记录了本次架构调整后的完整可运行状态。
+远端：`PaprikaChen/22lotus_hackathon_demo`（**private**），默认分支 `main`。
 
-- `CLAUDE.md` 里"大改动前检查 git status"这条安全规则**目前无法执行**；
-- 任何一次误改都没有回滚点。
+`.gitignore` 排除：`.godot/` 引擎缓存、`/android/`、`录屏/`（42MB 屏幕录制
+素材）、`.claude/settings.local.json`（个人权限设置）。入库 387 个文件、3.0MB，
+其中 227 个是 `addons/godot_ai/` 第三方插件——它在 `project.godot` 里是启用
+状态，不入库的话别人 clone 下来打不开工程。
 
-建议尽快 `git init` 并做第一次提交。
+`CLAUDE.md` 里"大改动前检查 git status"这条安全规则现在可以执行了。
 
 ### 10.2 新游戏入口（已修复 2026-08-26）
 
