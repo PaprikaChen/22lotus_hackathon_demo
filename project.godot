@@ -24,6 +24,15 @@ _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 MemoryManager="*res://scripts/autoload/memory_manager.gd"
 GalleryManager="*res://scripts/autoload/gallery_manager.gd"
 
+[display]
+
+window/size/viewport_width=1152
+window/size/viewport_height=648
+window/size/window_width_override=1728
+window/size/window_height_override=972
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")

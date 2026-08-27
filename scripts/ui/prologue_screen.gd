@@ -20,6 +20,8 @@ signal finished
 ## 和 `text_interactable.gd` 的 display_text 同一条纪律，方便直接在编辑器里改。
 @export var segments: PackedStringArray = []
 @export var fade_duration: float = 0.8
+## 切进关卡后黑幕淡出的时长。
+@export var fade_in_duration: float = 1.0
 ## 每段至少停留这么久才接受输入，防止连按一路跳过。
 @export var min_segment_time: float = 0.4
 ## Esc 整段跳过。
@@ -124,4 +126,27 @@ func _finish() -> void:
 	if not ResourceLoader.exists(target):
 		push_error("PrologueScreen: 目标场景不存在：%s" % target)
 		return
-	get_tree().change_scene_to_file.call_deferred(target)
+	# 文字先淡出，黑幕停一拍，再切场景——切完由挂在 root 上的黑幕淡出，
+	# 让「字幕页 → 关卡」看起来是一次连续的淡出淡入而不是硬切。
+	var tween := create_tween()
+	tween.tween_property(_text, ^"modulate:a", 0.0, fade_duration * 0.6)
+	tween.tween_interval(0.2)
+	tween.tween_callback(func() -> void: _enter_scene(target))
+
+
+## 黑幕挂在 root 上而不是本场景里，这样它能活过 change_scene——否则场景一换
+## 就跟着被 free，关卡会直接亮出来。
+func _enter_scene(target: String) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 128
+	var veil := ColorRect.new()
+	veil.color = Color(0, 0, 0, 1)
+	veil.set_anchors_preset(Control.PRESET_FULL_RECT)
+	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(veil)
+	get_tree().root.add_child(layer)
+	get_tree().change_scene_to_file(target)
+	var tween := veil.create_tween()
+	tween.tween_interval(0.1)
+	tween.tween_property(veil, ^"modulate:a", 0.0, fade_in_duration)
+	tween.tween_callback(layer.queue_free)

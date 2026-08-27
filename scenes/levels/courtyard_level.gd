@@ -35,8 +35,10 @@ func _ready() -> void:
 		_detector = _player.get_node_or_null("InteractionDetector") as InteractionDetector
 	if _detector != null:
 		_detector.prompt_changed.connect(_on_prompt_changed)
-	for prop in _collect_text_props(self):
+	for prop in _collect_props_with_signal(self, &"text_requested"):
 		prop.text_requested.connect(_show_text)
+	for prop in _collect_props_with_signal(self, &"choice_requested"):
+		prop.choice_requested.connect(_ask_choice)
 	var exit_node := get_node_or_null(level_exit_path) as LevelExit
 	if exit_node != null:
 		exit_node.exit_reached.connect(go_to_next_level)
@@ -55,11 +57,21 @@ func _show_text(text: String) -> void:
 		_dialogue.show_text(text)
 
 
-func _collect_text_props(node: Node, found: Array = []) -> Array:
+## 道具请关卡问一句「是 / 否」。**所有**选择也只走这一个对话框，
+## 不许各处自弹 UI。选完把下标交回给道具，怎么处理是它自己的事。
+func _ask_choice(text: String, options: PackedStringArray, on_choice: Callable) -> void:
+	if _dialogue == null or not _dialogue.has_method("ask"):
+		return
+	var index: int = await _dialogue.ask(text, options)
+	if on_choice.is_valid():
+		on_choice.call(index)
+
+
+func _collect_props_with_signal(node: Node, signal_name: StringName, found: Array = []) -> Array:
 	for child in node.get_children():
-		if child.has_signal("text_requested"):
+		if child.has_signal(signal_name):
 			found.append(child)
-		_collect_text_props(child, found)
+		_collect_props_with_signal(child, signal_name, found)
 	return found
 
 

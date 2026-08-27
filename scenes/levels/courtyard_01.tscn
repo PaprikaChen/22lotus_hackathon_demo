@@ -1,19 +1,23 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=20 format=3 uid="uid://cqd0o6acg8kw0"]
 
-[ext_resource type="Script" path="res://scenes/levels/courtyard_level.gd" id="1"]
+[ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
-[ext_resource type="Script" path="res://scripts/components/follow_camera.gd" id="3"]
-[ext_resource type="Script" path="res://scripts/components/text_interactable.gd" id="4"]
-[ext_resource type="Script" path="res://scripts/components/memory_pickup.gd" id="5"]
-[ext_resource type="Script" path="res://scripts/components/save_point.gd" id="6"]
-[ext_resource type="Script" path="res://scripts/components/level_exit.gd" id="7"]
+[ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
+[ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="4"]
+[ext_resource type="Script" uid="uid://de4b8hy4gkxhc" path="res://scripts/components/memory_pickup.gd" id="5"]
+[ext_resource type="Script" uid="uid://t0yv2yxpm5o6" path="res://scripts/components/save_point.gd" id="6"]
+[ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="10"]
-[ext_resource type="Script" path="res://scenes/levels/courtyard_01_story_director.gd" id="11"]
+[ext_resource type="Script" uid="uid://ow7x77576cjd" path="res://scenes/levels/courtyard_01_story_director.gd" id="11"]
+[ext_resource type="Texture2D" uid="uid://bkfo4i5nk1nvy" path="res://assets/art/backgrounds/testbg.jpg" id="12"]
+[ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="13"]
+[ext_resource type="Script" uid="uid://bonnbpommxu3e" path="res://scripts/components/arch_bridge.gd" id="14"]
+[ext_resource type="Script" uid="uid://cyjfsqwtlvsvp" path="res://scripts/components/passage_gate.gd" id="15"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(4608, 200)
+size = Vector2(9884, 200)
 
 [sub_resource type="RectangleShape2D" id="EdgeWallShape"]
 size = Vector2(64, 800)
@@ -26,59 +30,43 @@ size = Vector2(96, 200)
 
 [node name="Courtyard01" type="Node2D"]
 script = ExtResource("1")
+prompt_label_path = NodePath("UI/PromptLabel")
+dialogue_box_path = NodePath("DialogueBox")
+level_exit_path = NodePath("Props/ToNextLevel")
 level_id = &"courtyard_01"
 player_can_jump = false
 player_path = NodePath("Player")
 spawn_point_path = NodePath("SpawnPoint")
-prompt_label_path = NodePath("UI/PromptLabel")
-dialogue_box_path = NodePath("DialogueBox")
-level_exit_path = NodePath("Props/ToNextLevel")
 
 [node name="Background" type="Node2D" parent="."]
 
-[node name="Sky" type="Polygon2D" parent="Background"]
-color = Color(0.14, 0.15, 0.22, 1)
-polygon = PackedVector2Array(0, 0, 4608, 0, 4608, 300, 0, 300)
-
-[node name="Wall" type="Polygon2D" parent="Background"]
-color = Color(0.26, 0.24, 0.27, 1)
-polygon = PackedVector2Array(0, 300, 4608, 300, 4608, 560, 0, 560)
-
-[node name="GroundBand" type="Polygon2D" parent="Background"]
-color = Color(0.19, 0.18, 0.19, 1)
-polygon = PackedVector2Array(0, 560, 4608, 560, 4608, 648, 0, 648)
-
-[node name="Landmarks" type="Node2D" parent="Background"]
-
-[node name="Pillar00" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.36, 0.33, 0.34, 1)
-polygon = PackedVector2Array(332, 440, 368, 440, 368, 560, 332, 560)
-
-[node name="Pillar01" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.36, 0.33, 0.34, 1)
-polygon = PackedVector2Array(1032, 380, 1068, 380, 1068, 560, 1032, 560)
-
-[node name="Pillar02" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.36, 0.33, 0.34, 1)
-polygon = PackedVector2Array(1732, 320, 1768, 320, 1768, 560, 1732, 560)
-
-[node name="Pillar03" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.36, 0.33, 0.34, 1)
-polygon = PackedVector2Array(2432, 440, 2468, 440, 2468, 560, 2432, 560)
-
-[node name="Pillar04" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.36, 0.33, 0.34, 1)
-polygon = PackedVector2Array(3132, 380, 3168, 380, 3168, 560, 3132, 560)
-
-[node name="Pillar05" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.36, 0.33, 0.34, 1)
-polygon = PackedVector2Array(3832, 320, 3868, 320, 3868, 560, 3832, 560)
+[node name="Backdrop" type="Sprite2D" parent="Background"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("12")
+centered = false
+script = ExtResource("13")
 
 [node name="Ground" type="StaticBody2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-position = Vector2(2304, 660)
+position = Vector2(4910, 660)
 shape = SubResource("GroundShape")
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Bridge" type="StaticBody2D" parent="Terrain"]
+visible = false
+position = Vector2(3100, 567.135)
+script = ExtResource("14")
+arch_height = 60.0
+thickness = 180.0
+segments = 18
+
+[node name="WeedBlocker" type="StaticBody2D" parent="Terrain"]
+position = Vector2(1318, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/WeedBlocker"]
+shape = SubResource("EdgeWallShape")
 
 [node name="Bounds" type="Node2D" parent="."]
 
@@ -89,18 +77,40 @@ position = Vector2(-32, 360)
 shape = SubResource("EdgeWallShape")
 
 [node name="WallRight" type="StaticBody2D" parent="Bounds"]
-position = Vector2(4640, 360)
+position = Vector2(9852, 360)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/WallRight"]
 shape = SubResource("EdgeWallShape")
 
 [node name="SpawnPoint" type="Marker2D" parent="."]
-position = Vector2(200, 560)
+position = Vector2(1750, 560)
 
 [node name="Props" type="Node2D" parent="."]
 
+[node name="WeedsGate" type="Area2D" parent="Props"]
+position = Vector2(1400, 560)
+script = ExtResource("15")
+display_text = "（占位）齐腰的杂草把西侧的路封死了。
+（占位）草根带起的泥土里，露出石阶的棱。
+（占位）要拔开它吗？"
+cleared_text = "（占位）她一把一把地拔，指缝里全是土。
+（占位）西边的路露出来了。"
+declined_text = "（占位）她收回手。"
+blocker_path = NodePath("../../Terrain/WeedBlocker")
+visual_path = NodePath("Visual")
+flag_to_set = &"courtyard_01.weeds_cleared"
+prompt_text = "查看杂草"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/WeedsGate"]
+position = Vector2(0, -28)
+shape = SubResource("InteractShape")
+
+[node name="Visual" type="Polygon2D" parent="Props/WeedsGate"]
+color = Color(0.32, 0.4, 0.24, 1)
+polygon = PackedVector2Array(-46, -110, 46, -110, 46, 0, -46, 0)
+
 [node name="GateSpot" type="Area2D" parent="Props"]
-position = Vector2(620, 560)
+position = Vector2(880, 560)
 script = ExtResource("4")
 display_text = "（占位）院门虚掩着。
 （占位）门轴上的锈迹是新的。
@@ -112,11 +122,12 @@ position = Vector2(0, -28)
 shape = SubResource("InteractShape")
 
 [node name="Visual" type="Polygon2D" parent="Props/GateSpot"]
+visible = false
 color = Color(0.55, 0.44, 0.3, 1)
 polygon = PackedVector2Array(-26, -150, 26, -150, 26, 0, -26, 0)
 
 [node name="WellSpot" type="Area2D" parent="Props"]
-position = Vector2(1850, 560)
+position = Vector2(4290, 560)
 script = ExtResource("4")
 display_text = "（占位）井口盖着一块木板。
 （占位）板上压着一只空瓷碗。"
@@ -127,11 +138,12 @@ position = Vector2(0, -28)
 shape = SubResource("InteractShape")
 
 [node name="Visual" type="Polygon2D" parent="Props/WellSpot"]
+visible = false
 color = Color(0.42, 0.45, 0.5, 1)
 polygon = PackedVector2Array(-40, -60, 40, -60, 40, 0, -40, 0)
 
 [node name="HairpinPickup" type="Area2D" parent="Props"]
-position = Vector2(3050, 560)
+position = Vector2(6700, 560)
 script = ExtResource("5")
 memory_id = &"mountain_bird_hairpin"
 prompt_text = "拾起 山鸟簪"
@@ -142,6 +154,7 @@ position = Vector2(0, -24)
 shape = SubResource("InteractShape")
 
 [node name="Visual" type="Node2D" parent="Props/HairpinPickup"]
+visible = false
 
 [node name="Outline" type="Polygon2D" parent="Props/HairpinPickup/Visual"]
 color = Color(0.1, 0.1, 0.12, 1)
@@ -152,7 +165,7 @@ color = Color(0.95, 0.85, 0.42, 1)
 polygon = PackedVector2Array(-10, -46, 10, -46, 10, 0, -10, 0)
 
 [node name="SavePoint" type="Area2D" parent="Props"]
-position = Vector2(3600, 560)
+position = Vector2(5000, 560)
 script = ExtResource("6")
 prompt_text = "在此歇息（存档）"
 
@@ -161,11 +174,12 @@ position = Vector2(0, -30)
 shape = SubResource("InteractShape")
 
 [node name="Visual" type="Polygon2D" parent="Props/SavePoint"]
+visible = false
 color = Color(0.45, 0.6, 0.95, 1)
 polygon = PackedVector2Array(-22, -70, 22, -70, 22, 0, -22, 0)
 
 [node name="ToNextLevel" type="Area2D" parent="Props"]
-position = Vector2(4368, 560)
+position = Vector2(9050, 560)
 script = ExtResource("7")
 target_scene = "res://scenes/levels/courtyard_02.tscn"
 prompt_text = "往里走"
@@ -175,6 +189,7 @@ position = Vector2(0, -100)
 shape = SubResource("ExitShape")
 
 [node name="Visual" type="Polygon2D" parent="Props/ToNextLevel"]
+visible = false
 color = Color(0.3, 0.5, 0.34, 1)
 polygon = PackedVector2Array(-40, -190, 40, -190, 40, 0, -40, 0)
 
@@ -188,8 +203,8 @@ move_speed = 220.0
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")
 target_path = NodePath("../Player")
-world_bounds = Rect2(0, 0, 4608, 648)
-fixed_y = 324.0
+bounds_source_path = NodePath("../Background/Backdrop")
+left_gate_x = 1350
 
 [node name="DialogueBox" parent="." instance=ExtResource("8")]
 player_path = NodePath("../Player")
@@ -202,6 +217,7 @@ player_path = NodePath("../Player")
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="PromptLabel" type="Label" parent="UI"]
+anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0

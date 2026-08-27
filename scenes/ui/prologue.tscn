@@ -8,7 +8,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
-segments = PackedStringArray("（占位）杜府的别院空了十二年。", "（占位）没有人提起那扇一直闩着的门。", "（占位）今年清明，闩落了。")
+segments = PackedStringArray("却说杜丽娘醒来，方知柳梦梅早亡，\n一纸婚书，便是半生归宿。\n父亲称病相欺，嬷嬷以礼相逼。\n幸得春香吐露实情，以肩相托，助她越高墙入荒院。\n墙内生死未卜，墙外花轿将至，丽娘决然纵身跃下。", "正是：\n一纸婚书荒唐言，荒府凄凄寻蹊径。")
 
 [node name="Backdrop" type="ColorRect" parent="."]
 anchor_right = 1.0

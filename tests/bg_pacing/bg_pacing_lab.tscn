@@ -95,9 +95,9 @@ polygon = PackedVector2Array(-22, -44, 22, -44, 22, 0, -22, 0)
 [node name="MemoryDoor" type="Area2D" parent="Props"]
 position = Vector2(6100, 0)
 script = ExtResource("5")
-required_memory = &"bg_pacing_token_02"
 prompt_text = "开门"
 one_shot = true
+required_memory = &"bg_pacing_token_02"
 blocked_prompt_text = "锁着的——需要 长卷信物 乙"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/MemoryDoor"]

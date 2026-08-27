@@ -14,9 +14,18 @@ extends StoryDirector
 # 本关剧情节点。持久层，命名 <level_id>.<过去式>。
 const FLAG_GATE_EXAMINED := &"courtyard_01.gate_examined"
 const FLAG_WELL_EXAMINED := &"courtyard_01.well_examined"
+## 西侧杂草已拔除 —— 拔完相机左边界才放开、才走得过去。
+const FLAG_WEEDS_CLEARED := &"courtyard_01.weeds_cleared"
 
 ## 信物：是否持有只问 MemoryManager，不另配 Flag。
 const MEMORY_HAIRPIN := &"mountain_bird_hairpin"
+
+## 杂草未清除时画面最左侧停在哪。和场景里 WeedBlocker 的右侧面对齐。
+const WEST_GATE_X := 1350
+## 拔完草之后镜头滑开用多久。
+const WEST_GATE_SLIDE := 1.4
+## 滑镜头期间的输入锁来源。
+const LOCK_CAMERA_SLIDE := &"west_gate_slide"
 
 @export var dialogue_box_path: NodePath
 
@@ -25,6 +34,8 @@ const MEMORY_HAIRPIN := &"mountain_bird_hairpin"
 @onready var _well: Interactable = get_node_or_null(^"../Props/WellSpot")
 @onready var _hairpin: Interactable = get_node_or_null(^"../Props/HairpinPickup")
 @onready var _exit: LevelExit = get_node_or_null(^"../Props/ToNextLevel")
+@onready var _weeds: PassageGate = get_node_or_null(^"../Props/WeedsGate") as PassageGate
+@onready var _camera: FollowCamera2D = get_node_or_null(^"../FollowCamera2D") as FollowCamera2D
 
 
 func _connect_actors() -> void:
@@ -34,10 +45,13 @@ func _connect_actors() -> void:
 		_well.interacted.connect(_on_well_examined)
 	if _hairpin != null:
 		_hairpin.interacted.connect(_on_hairpin_taken)
+	if _weeds != null:
+		_weeds.cleared.connect(_on_weeds_cleared)
 
 
 func _restore_story_state() -> void:
 	_apply_exit_state()
+	_apply_west_passage()
 
 
 func _on_story_ready() -> void:
@@ -70,7 +84,36 @@ func _on_hairpin_taken(_player: Node) -> void:
 	_apply_exit_state()
 
 
+func _on_weeds_cleared() -> void:
+	# 障碍物自己已经把碰撞关掉、把 Flag 写好（PassageGate）。
+	# Director 只决定"清完之后世界怎么变"——这里是把画面往西缓缓放开。
+	if _camera == null:
+		return
+	# 滑动期间锁住玩家：让玩家看清楚西边多出来的那截路，也免得他一边走
+	# 一边镜头在动，两个位移叠在一起看着晃。
+	var player := get_node_or_null(^"../Player")
+	if player != null and player.has_method("lock_input"):
+		player.lock_input(LOCK_CAMERA_SLIDE)
+		_camera.left_gate_opened.connect(
+			func() -> void: player.unlock_input(LOCK_CAMERA_SLIDE),
+			CONNECT_ONE_SHOT)
+	_camera.slide_left_gate_open(WEST_GATE_SLIDE)
+
+
 # --- 恢复链路 -------------------------------------------------------------------
+
+## 西侧通路：杂草没拔掉之前画面最左停在 1350，拔掉后回到真实场景边界。
+## 相机闸门放在 Director 而不是 PassageGate 里——"清障之后镜头能看多远"是
+## 关卡编排，不是那丛草自己的事。
+func _apply_west_passage() -> void:
+	if _camera == null:
+		return
+	if StoryFlagManager.has_flag(FLAG_WEEDS_CLEARED):
+		# 恢复链路只摆终态、不放动画——读档回来不该再看一遍镜头滑动。
+		_camera.release_left_gate()
+	else:
+		_camera.set_left_gate(WEST_GATE_X)
+
 
 ## 占位门槛：拿到山鸟簪才能往里走。等剧情定稿后换成真正的条件。
 func _apply_exit_state() -> void:

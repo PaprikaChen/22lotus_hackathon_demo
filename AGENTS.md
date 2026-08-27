@@ -95,6 +95,26 @@
   **移动逻辑不得依赖动画资源名**，映射表只存在于这个文件。素材没接上时自动
   退化为灰盒 Polygon2D。
   `tests/helpers/` 只剩纯测试脚本，正式关卡不再从测试目录引用实现。
+- 立娘 Sprite（已接上，2026-08-27）：`assets/art/sprites/liniang/` 的
+  `liniang_idle.png`（4 帧）/ `liniang_walk.png.png`（6 帧）横向排列的精灵图，
+  切分为 `resources/sprite_frames/liniang.tres`（AtlasTexture，idle 3fps /
+  walk 6.67fps，都循环）。**素材交付规范**（改素材必须同步这几个数）：
+  单帧 512x512、只画朝右一套（朝左由 `flip_h` 镜像）、人物脚线在单帧
+  y=484、头顶 y≈15、身体中轴对齐单帧横向中心 x=256。
+  player.tscn 里 `PlayerVisual/Sprite` 用 `centered = true` +
+  `offset = (0, -228)` 把脚线钉在 Player 原点（原点 = 着地点），
+  `scale = 0.36` 得到约 168px 高的人物；碰撞盒 `RectangleShape2D` 44x160、
+  `position = (0, -80)`，整体站在原点之上。人物在画面里的大小 = `scale`
+  这一个数，调手感只动它 + 碰撞盒高度，别去改 offset。
+  INTERACT 目前没有单独素材，player.tscn 里把 `anim_interact` 指回 `idle`。
+  验证房：`tests/test_player_visual.tscn`（24 条断言：帧数/图集切分/脚线对位/
+  A 左 D 右 → walk、松手 → idle、flip_h）。
+- 截图调试工具：`tests/helpers/capture_scene.gd/.tscn` —— 开窗跑任意场景、
+  等若干帧、存 PNG 后退出（无头模式不渲染，必须开窗）。用来肉眼检查
+  人物大小/脚线/朝向这类断言判断不了的东西：
+  `Godot --path . --resolution 1152x648 res://tests/helpers/capture_scene.tscn
+  -- --scene=res://scenes/levels/courtyard_01.tscn --out=user://shot.png
+  --frames=40 [--hold=move_right]`。
 - **尚未实现**（不要假装存在，也不要在没有任务要求时顺手创建）：
   SceneManager（场景切换目前直接使用 `get_tree().change_scene_to_file()`）、
   独立的 PlayerStateMachine 脚本（当前为 player.gd 内的轻量枚举，够用前不拆）、
@@ -390,3 +410,4 @@ components / props）、`scripts/`（autoload / components / globals）、
 - 修改输入映射、Autoload、渲染或导出设置前必须征得用户同意。
 - 关卡最终构成、剧情含义、视觉象征、恐怖节奏、手感终调、美术方向
   由用户决定，Agent 不独立拍板。
+- Before making changes, analyze the required modifications. Batch all file edits first. Minimize MCP calls. Only run Godot once after completing the implementation.

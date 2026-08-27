@@ -1,16 +1,16 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=16 format=3 uid="uid://dvlxsjofe6vxh"]
 
-[ext_resource type="Script" path="res://scenes/levels/courtyard_level.gd" id="1"]
+[ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
-[ext_resource type="Script" path="res://scripts/components/follow_camera.gd" id="3"]
-[ext_resource type="Script" path="res://scripts/components/text_interactable.gd" id="4"]
-[ext_resource type="Script" path="res://scripts/components/memory_pickup.gd" id="5"]
-[ext_resource type="Script" path="res://scripts/components/save_point.gd" id="6"]
-[ext_resource type="Script" path="res://scripts/components/level_exit.gd" id="7"]
+[ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
+[ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="4"]
+[ext_resource type="Script" uid="uid://de4b8hy4gkxhc" path="res://scripts/components/memory_pickup.gd" id="5"]
+[ext_resource type="Script" uid="uid://t0yv2yxpm5o6" path="res://scripts/components/save_point.gd" id="6"]
+[ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="10"]
-[ext_resource type="Script" path="res://scenes/levels/courtyard_02_story_director.gd" id="11"]
+[ext_resource type="Script" uid="uid://coewhcvhnakhw" path="res://scenes/levels/courtyard_02_story_director.gd" id="11"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(3456, 200)
@@ -26,13 +26,13 @@ size = Vector2(96, 200)
 
 [node name="Courtyard02" type="Node2D"]
 script = ExtResource("1")
+prompt_label_path = NodePath("UI/PromptLabel")
+dialogue_box_path = NodePath("DialogueBox")
+level_exit_path = NodePath("Props/BackToFirst")
 level_id = &"courtyard_02"
 player_can_jump = false
 player_path = NodePath("Player")
 spawn_point_path = NodePath("SpawnPoint")
-prompt_label_path = NodePath("UI/PromptLabel")
-dialogue_box_path = NodePath("DialogueBox")
-level_exit_path = NodePath("Props/BackToFirst")
 
 [node name="Background" type="Node2D" parent="."]
 
@@ -169,7 +169,6 @@ move_speed = 220.0
 script = ExtResource("3")
 target_path = NodePath("../Player")
 world_bounds = Rect2(0, 0, 3456, 648)
-fixed_y = 324.0
 
 [node name="DialogueBox" parent="." instance=ExtResource("8")]
 player_path = NodePath("../Player")
@@ -182,6 +181,7 @@ player_path = NodePath("../Player")
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="PromptLabel" type="Label" parent="UI"]
+anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0

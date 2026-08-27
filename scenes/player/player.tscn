@@ -1,37 +1,45 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/player/player.gd" id="1"]
 [ext_resource type="Script" path="res://scenes/player/dream_gap_ability.gd" id="2"]
 [ext_resource type="Script" path="res://scenes/player/interaction_detector.gd" id="3"]
 [ext_resource type="Script" path="res://scenes/player/player_visual.gd" id="4"]
+[ext_resource type="SpriteFrames" path="res://resources/sprite_frames/liniang.tres" id="5"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
-size = Vector2(32, 48)
+size = Vector2(61, 222)
 
 [sub_resource type="RectangleShape2D" id="DepthFootprint_1"]
-size = Vector2(32, 28)
+size = Vector2(61, 28)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
-radius = 56.0
+radius = 78.0
 
 [node name="Player" type="CharacterBody2D"]
+floor_constant_speed = true
+floor_snap_length = 32.0
 script = ExtResource("1")
 
 [node name="Visual" type="Polygon2D" parent="."]
 color = Color(0.45, 0.82, 1, 1)
-polygon = PackedVector2Array(-16, -48, 16, -48, 16, 0, -16, 0)
+polygon = PackedVector2Array(-30, -222, 30, -222, 30, 0, -30, 0)
 
 [node name="PlayerVisual" type="Node2D" parent="."]
 script = ExtResource("4")
 player_path = NodePath("..")
 sprite_path = NodePath("Sprite")
 graybox_path = NodePath("../Visual")
+anim_interact = &"idle"
 
 [node name="Sprite" type="AnimatedSprite2D" parent="PlayerVisual"]
-centered = false
+sprite_frames = ExtResource("5")
+animation = &"idle"
+autoplay = "idle"
+offset = Vector2(0, -150)
+scale = Vector2(0.5, 0.5)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -24)
+position = Vector2(0, -111)
 shape = SubResource("RectangleShape2D_1")
 
 [node name="DepthCollisionShape2D" type="CollisionShape2D" parent="."]
@@ -42,7 +50,7 @@ disabled = true
 script = ExtResource("2")
 
 [node name="InteractionDetector" type="Area2D" parent="."]
-position = Vector2(0, -24)
+position = Vector2(0, -33)
 script = ExtResource("3")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionDetector"]

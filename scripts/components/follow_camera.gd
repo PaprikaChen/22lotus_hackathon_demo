@@ -12,6 +12,9 @@ extends Camera2D
 ## 硬约束：场景宽度必须 ≥ 视口宽度，否则左右 limit 互相冲突，画面会抖。
 ## `_ready()` 会检查并 push_warning。
 
+## 闸门滑动结束时发。等它滑完再解锁玩家输入的地方接这个。
+signal left_gate_opened
+
 @export var target_path: NodePath
 
 @export_group("Bounds")
@@ -28,7 +31,18 @@ extends Camera2D
 ## 0 = 硬跟随。轻微平滑（0.08~0.15）走动更舒服，但贴边会多半帧才停。
 @export var smoothing_seconds: float = 0.0
 
+@export_group("Gate")
+## ≥ 0 时开局把左边界额外收窄到这个世界 x：画面最左侧就停在这里，
+## 左边的场景先看不见。被 `release_left_gate()` 放开后回到真实场景边界。
+##
+## 为什么不直接改 limit_left：`_apply_bounds()` 会按背景尺寸重算 limit，
+## 手改的值会被下一次 refresh_bounds() 冲掉。闸门是独立的一层，
+## 每次算完边界都会重新叠上去。
+@export var left_gate_x: int = -1: set = set_left_gate
+
 var _target: Node2D = null
+## 背景算出来的真实左边界，闸门放开后要回到这个值。
+var _bounds_limit_left: int = 0
 
 
 func _ready() -> void:
@@ -61,6 +75,37 @@ func get_bounds() -> Rect2:
 		Vector2(float(limit_right - limit_left), float(limit_bottom - limit_top)))
 
 
+## 平滑放开左侧闸门：画面缓缓往左滑到真实边界，而不是一帧跳过去。
+## 幂等——闸门本来就是开的时候立刻发信号返回。
+##
+## 滑的是 limit_left 而不是相机位置：相机每帧都被钉在玩家身上，
+## 动它会被下一帧覆盖；边界往外让，画面就自己跟着让出来。
+func slide_left_gate_open(duration: float = 1.2) -> void:
+	if not is_left_gate_closed():
+		left_gate_opened.emit()
+		return
+	var tween := create_tween()
+	tween.tween_method(set_left_gate, left_gate_x, _bounds_limit_left, duration) 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_callback(release_left_gate)
+	tween.tween_callback(left_gate_opened.emit)
+
+
+## 放开左侧闸门（例：拔掉挡路的杂草之后）。幂等，读档恢复也调它。
+func release_left_gate() -> void:
+	set_left_gate(-1)
+
+
+## 收窄/移动左侧闸门。传 -1 = 取消闸门。
+func set_left_gate(x: int) -> void:
+	left_gate_x = x
+	if is_inside_tree():
+		_apply_left_gate()
+
+
+func is_left_gate_closed() -> bool:
+	return left_gate_x >= 0
+
+
 func _resolve_bounds() -> Rect2:
 	if world_bounds.size.x > 0.0 and world_bounds.size.y > 0.0:
 		return world_bounds
@@ -79,7 +124,8 @@ func _resolve_bounds() -> Rect2:
 func _apply_bounds(bounds: Rect2) -> void:
 	if bounds.size.x <= 0.0 or bounds.size.y <= 0.0:
 		return
-	limit_left = int(bounds.position.x)
+	_bounds_limit_left = int(bounds.position.x)
+	limit_left = _bounds_limit_left
 	limit_top = int(bounds.position.y)
 	limit_right = int(bounds.position.x + bounds.size.x)
 	limit_bottom = int(bounds.position.y + bounds.size.y)
@@ -88,6 +134,12 @@ func _apply_bounds(bounds: Rect2) -> void:
 		push_warning(
 			"FollowCamera2D: 场景宽 %d < 视口宽 %d，左右 limit 会冲突导致画面抖动。"
 			% [int(bounds.size.x), int(view.x)])
+	_apply_left_gate()
+
+
+## 闸门只会**收窄**可见范围，永远不会把画面推到场景外面去。
+func _apply_left_gate() -> void:
+	limit_left = maxi(_bounds_limit_left, left_gate_x) if left_gate_x >= 0 else _bounds_limit_left
 
 
 func _apply_smoothing() -> void:
