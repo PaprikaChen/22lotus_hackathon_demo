@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://cqd0o6acg8kw0"]
+[gd_scene load_steps=32 format=3 uid="uid://cqd0o6acg8kw0"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -6,8 +6,6 @@
 [ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="4"]
 [ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
-[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="9"]
-[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="10"]
 [ext_resource type="Script" uid="uid://ow7x77576cjd" path="res://scenes/levels/courtyard_01_story_director.gd" id="11"]
 [ext_resource type="Texture2D" uid="uid://53esgqvyk4nb" path="res://assets/art/backgrounds/back/courtyard_01_back.png" id="12"]
 [ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="13"]
@@ -373,11 +371,6 @@ player_path = NodePath("../Player")
 
 [node name="DialogueBox" parent="." instance=ExtResource("8")]
 player_path = NodePath("../Player")
-
-[node name="MemoryBoxUI" parent="." instance=ExtResource("9")]
-player_path = NodePath("../Player")
-
-[node name="MemoryToast" parent="." instance=ExtResource("10")]
 
 [node name="PaperOverlay" type="CanvasLayer" parent="."]
 layer = 50

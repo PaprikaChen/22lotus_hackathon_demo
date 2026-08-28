@@ -1,0 +1,114 @@
+[gd_scene load_steps=14 format=3 uid="uid://bgypo4k2v8j21"]
+
+[ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interaction_prompt.tscn" id="6"]
+[ext_resource type="Texture2D" uid="uid://dp8kpp2tyujc7" path="res://assets/art/backgrounds/back/courtyard_03_back.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://cct4my2y3yp8o" path="res://assets/art/backgrounds/middle/courtyard_03_middle.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://ddipl0b86ceqd" path="res://assets/art/backgrounds/front/courtyard_03_front.png" id="9"]
+[ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="10"]
+[ext_resource type="Script" path="res://scenes/levels/courtyard_03_story_director.gd" id="11"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(9820, 200)
+
+[sub_resource type="RectangleShape2D" id="EdgeWallShape"]
+size = Vector2(64, 800)
+
+[node name="Courtyard03" type="Node2D"]
+script = ExtResource("1")
+dialogue_box_path = NodePath("DialogueBox")
+level_id = &"courtyard_03"
+player_can_jump = false
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="Background" type="Node2D" parent="."]
+
+[node name="BackParallax" type="Parallax2D" parent="Background"]
+z_index = -2
+scroll_scale = Vector2(0.995, 1)
+
+[node name="Backdrop" type="Sprite2D" parent="Background/BackParallax"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("7")
+centered = false
+script = ExtResource("10")
+
+[node name="Backdrop" type="Sprite2D" parent="Background"]
+z_index = -1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("8")
+centered = false
+script = ExtResource("10")
+
+[node name="FrontParallax" type="Parallax2D" parent="Background"]
+z_index = 1
+scroll_scale = Vector2(1.005, 1)
+
+[node name="Backdrop" type="Sprite2D" parent="Background/FrontParallax"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("9")
+centered = false
+script = ExtResource("10")
+
+[node name="Ground" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+position = Vector2(4910, 660)
+shape = SubResource("GroundShape")
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Bounds" type="Node2D" parent="."]
+
+[node name="WallLeft" type="StaticBody2D" parent="Bounds"]
+position = Vector2(-32, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/WallLeft"]
+shape = SubResource("EdgeWallShape")
+
+[node name="WallRight" type="StaticBody2D" parent="Bounds"]
+position = Vector2(9852, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/WallRight"]
+shape = SubResource("EdgeWallShape")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(500, 560)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="NPCs" type="Node2D" parent="."]
+
+[node name="Cutscenes" type="Node" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2")]
+move_speed = 1100.0
+
+[node name="FollowCamera2D" type="Camera2D" parent="."]
+script = ExtResource("3")
+target_path = NodePath("../Player")
+bounds_source_path = NodePath("../Background/Backdrop")
+
+[node name="FrameBars" parent="." instance=ExtResource("5")]
+
+[node name="DialogueBox" parent="." instance=ExtResource("4")]
+player_path = NodePath("../Player")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InteractionPrompt" parent="UI" instance=ExtResource("6")]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
+player_path = NodePath("../../Player")
+
+[node name="StoryDirector" type="Node" parent="."]
+script = ExtResource("11")

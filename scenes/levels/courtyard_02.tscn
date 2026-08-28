@@ -1,12 +1,9 @@
-[gd_scene load_steps=18 format=3 uid="uid://dvlxsjofe6vxh"]
+[gd_scene load_steps=25 format=3 uid="uid://dvlxsjofe6vxh"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
-[ext_resource type="Script" uid="uid://t0yv2yxpm5o6" path="res://scripts/components/save_point.gd" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
-[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="9"]
-[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="10"]
 [ext_resource type="Script" uid="uid://coewhcvhnakhw" path="res://scenes/levels/courtyard_02_story_director.gd" id="11"]
 [ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="12"]
 [ext_resource type="Texture2D" uid="uid://lvuqs3ta0upi" path="res://assets/art/backgrounds/back/courtyard_02_back.png" id="13"]
@@ -14,9 +11,22 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/interaction_prompt.tscn" id="15"]
 [ext_resource type="Texture2D" uid="uid://by1oll8nbe2sa" path="res://assets/art/backgrounds/middle/courtyard_02_middle.png" id="16"]
 [ext_resource type="Texture2D" uid="uid://cenwdler84o2c" path="res://assets/art/backgrounds/front/courtyard_02_front.png" id="17"]
+[ext_resource type="Texture2D" uid="uid://bh74ae4wot7nh" path="res://assets/art/backgrounds/front/hallway.png" id="18"]
+[ext_resource type="Texture2D" uid="uid://cs7km0shav0st" path="res://assets/art/backgrounds/front/hallway2.png" id="19"]
+[ext_resource type="Texture2D" uid="uid://cryo57emvmte6" path="res://assets/art/sprites/interactables/courtyard_02/flower.png" id="20"]
+[ext_resource type="Script" uid="uid://1ae1yvf4cf7" path="res://scripts/components/flower_rig.gd" id="21"]
+[ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="22"]
+[ext_resource type="Texture2D" uid="uid://grj4r7ke8kfc" path="res://assets/art/sprites/interactables/courtyard_01/paper_note_placeholder.png" id="23"]
+[ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="24"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(5052, 200)
+size = Vector2(3204, 200)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nnwk8"]
+size = Vector2(348.092, 133.5)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_nnwk8"]
+radius = 176.59
 
 [sub_resource type="RectangleShape2D" id="EdgeWallShape"]
 size = Vector2(64, 800)
@@ -24,9 +34,13 @@ size = Vector2(64, 800)
 [sub_resource type="CircleShape2D" id="InteractShape"]
 radius = 56.0
 
+[sub_resource type="RectangleShape2D" id="ExitShape"]
+size = Vector2(96, 560)
+
 [node name="Courtyard02" type="Node2D"]
 script = ExtResource("1")
 dialogue_box_path = NodePath("DialogueBox")
+level_exit_path = NodePath("Props/ToCourtyard03")
 level_id = &"courtyard_02"
 player_can_jump = false
 player_path = NodePath("Player")
@@ -61,11 +75,110 @@ texture = ExtResource("17")
 centered = false
 script = ExtResource("14")
 
+[node name="Hallway" type="Sprite2D" parent="Background/FrontParallax"]
+position = Vector2(-261, -1)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("18")
+centered = false
+script = ExtResource("14")
+
+[node name="Hallway2" type="Sprite2D" parent="Background/FrontParallax"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("19")
+centered = false
+script = ExtResource("14")
+
+[node name="FlowerRig" type="Node2D" parent="Background/FrontParallax"]
+z_index = -2
+scale = Vector2(0.6, 0.6)
+script = ExtResource("21")
+bone_paths = Array[NodePath]([NodePath("Skeleton2D/LeftFlowerBranch"), NodePath("Skeleton2D/RightFlowerBranch"), NodePath(""), NodePath("")])
+
+[node name="Skeleton2D" type="Skeleton2D" parent="Background/FrontParallax/FlowerRig"]
+
+[node name="LeftFlowerBranch" type="Bone2D" parent="Background/FrontParallax/FlowerRig/Skeleton2D"]
+position = Vector2(5940, 1048)
+
+[node name="Art" type="Sprite2D" parent="Background/FrontParallax/FlowerRig/Skeleton2D/LeftFlowerBranch"]
+position = Vector2(-260, -928)
+texture = ExtResource("20")
+centered = false
+region_enabled = true
+region_rect = Rect2(5680, 120, 520, 928)
+
+[node name="RightFlowerBranch" type="Bone2D" parent="Background/FrontParallax/FlowerRig/Skeleton2D"]
+position = Vector2(6568, 1056)
+
+[node name="Art" type="Sprite2D" parent="Background/FrontParallax/FlowerRig/Skeleton2D/RightFlowerBranch"]
+position = Vector2(-384, -872)
+texture = ExtResource("20")
+centered = false
+region_enabled = true
+region_rect = Rect2(6184, 184, 768, 872)
+
+[node name="Art2" type="Sprite2D" parent="Background/FrontParallax/FlowerRig/Skeleton2D/RightFlowerBranch/Art"]
+position = Vector2(168, -88)
+texture = ExtResource("20")
+centered = false
+region_enabled = true
+region_rect = Rect2(6352, 96, 128, 112)
+
+[node name="Art" type="Sprite2D" parent="Background/FrontParallax/FlowerRig/Skeleton2D/RightFlowerBranch/Art"]
+position = Vector2(568, 40)
+texture = ExtResource("20")
+centered = false
+region_enabled = true
+region_rect = Rect2(6752, 224, 128, 96)
+
 [node name="Ground" type="StaticBody2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-position = Vector2(2526, 660)
+position = Vector2(3517, 688)
 shape = SubResource("GroundShape")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Ground"]
+position = Vector2(175, 600)
+shape = SubResource("RectangleShape2D_nnwk8")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="Ground"]
+position = Vector2(495, 650)
+rotation = 0.285974
+shape = SubResource("RectangleShape2D_nnwk8")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="Ground"]
+position = Vector2(830, 747)
+rotation = 0.285974
+shape = SubResource("RectangleShape2D_nnwk8")
+
+[node name="CollisionShape2D5" type="CollisionShape2D" parent="Ground"]
+position = Vector2(1105, 813)
+rotation = 0.144967
+shape = SubResource("RectangleShape2D_nnwk8")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="Ground"]
+position = Vector2(1260, 797)
+rotation = -0.191291
+shape = SubResource("RectangleShape2D_nnwk8")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="Ground"]
+position = Vector2(1573, 738)
+rotation = -0.191291
+shape = SubResource("RectangleShape2D_nnwk8")
+
+[node name="CollisionShape2D8" type="CollisionShape2D" parent="Ground"]
+position = Vector2(1749, 676)
+rotation = -0.402789
+shape = SubResource("RectangleShape2D_nnwk8")
+
+[node name="CollisionShape2D9" type="CollisionShape2D" parent="Ground"]
+position = Vector2(3248, 723)
+rotation = 0.492633
+shape = SubResource("CircleShape2D_nnwk8")
+
+[node name="CollisionShape2D10" type="CollisionShape2D" parent="Ground"]
+position = Vector2(4341, 728)
+rotation = 0.492633
+shape = SubResource("CircleShape2D_nnwk8")
 
 [node name="Terrain" type="Node2D" parent="."]
 
@@ -84,26 +197,62 @@ position = Vector2(5084, 360)
 shape = SubResource("EdgeWallShape")
 
 [node name="SpawnPoint" type="Marker2D" parent="."]
-position = Vector2(200, 560)
+position = Vector2(500, 560)
 
 [node name="Props" type="Node2D" parent="."]
 
-[node name="SavePoint" type="Area2D" parent="Props"]
-position = Vector2(3400, 560)
-script = ExtResource("6")
-prompt_text = "在此歇息（存档）"
+[node name="PortraitsSpot" type="Area2D" parent="Props"]
+position = Vector2(1250, 632)
+script = ExtResource("22")
+display_text = "走廊里挂着几幅已经破旧不堪的仕女图。"
+prompt_text = "查看仕女图"
 
-[node name="EyeAnchor" type="Marker2D" parent="Props/SavePoint"]
-position = Vector2(0, -100)
+[node name="EyeAnchor" type="Marker2D" parent="Props/PortraitsSpot"]
+position = Vector2(0, -200)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/SavePoint"]
-position = Vector2(0, -30)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/PortraitsSpot"]
+position = Vector2(0, -55)
 shape = SubResource("InteractShape")
 
-[node name="Visual" type="Polygon2D" parent="Props/SavePoint"]
-visible = false
-color = Color(0.45, 0.6, 0.95, 1)
-polygon = PackedVector2Array(-22, -70, 22, -70, 22, 0, -22, 0)
+[node name="FlowerSpot" type="Area2D" parent="Props"]
+position = Vector2(3780, 560)
+script = ExtResource("22")
+display_text = "满圃草木都已枯败，只有这一丛花草仍是烂漫葱郁。
+花茎纤长，远远望去，仿若浮于草木之上。"
+prompt_text = "查看花朵"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/FlowerSpot"]
+position = Vector2(0, -240)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/FlowerSpot"]
+position = Vector2(0, -55)
+shape = SubResource("InteractShape")
+
+[node name="notebook" type="Area2D" parent="Props"]
+position = Vector2(4077, 541)
+script = ExtResource("22")
+display_text = "捡到了某人的笔记。
+【怀瑾见我久病枯坐，特将天山所得异花移至窗前。其茎纤长，风来若浮空无所依，故名“浮游花”。】
+【吾素爱奇花异草，见之甚喜。虽不能远行，抬眼见之，如邀天山之风入院中。——云岫】"
+prompt_text = "查看花旁的纸片"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/notebook"]
+position = Vector2(0, -38)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/notebook"]
+position = Vector2(3, -5)
+shape = SubResource("InteractShape")
+
+[node name="ToCourtyard03" type="Area2D" parent="Props"]
+position = Vector2(5000, 560)
+script = ExtResource("24")
+target_scene = "res://scenes/levels/courtyard_03.tscn"
+trigger_on_touch = true
+prompt_text = "前往下一处庭院"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/ToCourtyard03"]
+position = Vector2(0, -280)
+shape = SubResource("ExitShape")
 
 [node name="NPCs" type="Node2D" parent="."]
 
@@ -122,10 +271,45 @@ bounds_source_path = NodePath("../Background/Backdrop")
 [node name="DialogueBox" parent="." instance=ExtResource("8")]
 player_path = NodePath("../Player")
 
-[node name="MemoryBoxUI" parent="." instance=ExtResource("9")]
-player_path = NodePath("../Player")
+[node name="PaperOverlay" type="CanvasLayer" parent="."]
+layer = 50
 
-[node name="MemoryToast" parent="." instance=ExtResource("10")]
+[node name="Root" type="Control" parent="PaperOverlay"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Dimmer" type="ColorRect" parent="PaperOverlay/Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="PaperNote" type="TextureRect" parent="PaperOverlay/Root"]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.42
+anchor_right = 0.5
+anchor_bottom = 0.42
+offset_left = -80.0
+offset_top = -120.0
+offset_right = 80.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("23")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="UI" type="CanvasLayer" parent="."]
 

@@ -1,10 +1,8 @@
-[gd_scene load_steps=9 format=3 uid="uid://da72jjne7mxam"]
+[gd_scene load_steps=7 format=3 uid="uid://da72jjne7mxam"]
 
 [ext_resource type="Script" uid="uid://frw5rtjfujwj" path="res://scenes/levels/main_house_interior.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="4"]
-[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="6"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
@@ -91,11 +89,6 @@ position = Vector2(180, 480)
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(576, 324)
-
-[node name="MemoryBoxUI" parent="." instance=ExtResource("4")]
-player_path = NodePath("../Player")
-
-[node name="MemoryToast" parent="." instance=ExtResource("5")]
 
 [node name="DialogueBox" parent="." instance=ExtResource("6")]
 player_path = NodePath("../Player")

@@ -1,12 +1,10 @@
-[gd_scene load_steps=17 format=3 uid="uid://bby0xx7bi5oyr"]
+[gd_scene load_steps=15 format=3 uid="uid://bby0xx7bi5oyr"]
 
 [ext_resource type="Script" uid="uid://ct4swt7kigi7m" path="res://scenes/levels/old_courtyard.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Script" uid="uid://6nxjpeecns72" path="res://scripts/components/exploration_area.gd" id="3"]
 [ext_resource type="Script" uid="uid://cwymo8ljuhuwt" path="res://scripts/components/area_flow_controller.gd" id="4"]
 [ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="5"]
-[ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="6"]
-[ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
 [ext_resource type="Script" uid="uid://bbw4kdurtfmw8" path="res://scenes/levels/old_courtyard_story_director.gd" id="9"]
 [ext_resource type="Script" uid="uid://db2tspjbf8mxp" path="res://scenes/levels/old_courtyard_mother_cutscene.gd" id="10"]
@@ -557,11 +555,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.42, 0.16, 0.32, 0.55)
-
-[node name="MemoryBoxUI" parent="." instance=ExtResource("6")]
-player_path = NodePath("../Player")
-
-[node name="MemoryToast" parent="." instance=ExtResource("7")]
 
 [node name="DialogueBox" parent="." instance=ExtResource("8")]
 player_path = NodePath("../Player")
