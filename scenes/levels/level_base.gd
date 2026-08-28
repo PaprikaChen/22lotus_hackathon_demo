@@ -12,6 +12,8 @@ extends Node2D
 signal level_started
 signal level_completed
 
+const PAUSE_MENU_SCENE: PackedScene = preload("res://scenes/ui/pause_menu.tscn")
+
 ## Stable id for save/progress purposes. Persisted ids must never be renamed.
 @export var level_id: StringName = &""
 
@@ -32,6 +34,7 @@ signal level_completed
 @export var spawn_point_path: NodePath
 
 var _player: Node2D = null
+var _pause_menu: PauseMenu = null
 
 
 func _ready() -> void:
@@ -41,6 +44,7 @@ func _ready() -> void:
 	_apply_movement_mode()
 	_apply_player_abilities()
 	_place_player()
+	_install_pause_menu()
 	on_level_started()
 	level_started.emit()
 
@@ -108,3 +112,16 @@ func _place_player() -> void:
 	# Input must never arrive dead from an interrupted lock in a previous scene.
 	if _player.has_method("clear_input_locks"):
 		_player.clear_input_locks()
+
+
+## 只给作为当前场景运行的正式关卡挂暂停菜单。测试常把关卡当作子场景
+## 实例化，那里不应额外生成全屏 UI 或接管 Esc。
+func _install_pause_menu() -> void:
+	if get_tree().current_scene != self:
+		return
+	_pause_menu = PAUSE_MENU_SCENE.instantiate() as PauseMenu
+	if _pause_menu == null:
+		push_error("LevelBase: 无法实例化暂停菜单。")
+		return
+	_pause_menu.set_player(_player)
+	add_child(_pause_menu)

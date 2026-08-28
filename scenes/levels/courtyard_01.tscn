@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://cqd0o6acg8kw0"]
+[gd_scene load_steps=31 format=3 uid="uid://cqd0o6acg8kw0"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -11,20 +11,29 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="10"]
 [ext_resource type="Script" uid="uid://ow7x77576cjd" path="res://scenes/levels/courtyard_01_story_director.gd" id="11"]
-[ext_resource type="Texture2D" uid="uid://bkfo4i5nk1nvy" path="res://assets/art/backgrounds/testbg.jpg" id="12"]
+[ext_resource type="Texture2D" uid="uid://53esgqvyk4nb" path="res://assets/art/backgrounds/back/courtyard_01_back.png" id="12"]
 [ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="13"]
 [ext_resource type="Script" uid="uid://bonnbpommxu3e" path="res://scripts/components/arch_bridge.gd" id="14"]
 [ext_resource type="Script" uid="uid://cyjfsqwtlvsvp" path="res://scripts/components/passage_gate.gd" id="15"]
 [ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="16"]
 [ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="17"]
-[ext_resource type="PackedScene" path="res://scenes/ui/rotary_lock.tscn" id="18"]
+[ext_resource type="PackedScene" uid="uid://c4te6c73d6u4f" path="res://scenes/ui/rotary_lock.tscn" id="18"]
 [ext_resource type="Script" uid="uid://cmt7i5cs3otw0" path="res://scripts/components/backtrack_trap.gd" id="19"]
+[ext_resource type="Texture2D" uid="uid://5sj0t61tslaa" path="res://assets/art/backgrounds/middle/courtyard_01_middle.png" id="20"]
+[ext_resource type="Texture2D" uid="uid://cc0hsf21acus4" path="res://assets/art/backgrounds/front/courtyard_01_front.png" id="21"]
+[ext_resource type="Texture2D" uid="uid://nen672ljdeqj" path="res://assets/art/sprites/interactables/courtyard_01/denglong1.png" id="22"]
+[ext_resource type="Texture2D" uid="uid://bbijla52ouqds" path="res://assets/art/sprites/interactables/courtyard_01/denglong2.png" id="23"]
+[ext_resource type="Script" uid="uid://hcfqhpnlyqeg" path="res://scripts/components/floating_visual.gd" id="24"]
+[ext_resource type="Texture2D" uid="uid://53j2rtlbk5t0" path="res://assets/art/sprites/interactables/courtyard_01/grass.png" id="25"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(9884, 200)
 
 [sub_resource type="RectangleShape2D" id="EdgeWallShape"]
 size = Vector2(64, 800)
+
+[sub_resource type="RectangleShape2D" id="WindowListenShape"]
+size = Vector2(140, 260)
 
 [sub_resource type="CircleShape2D" id="InteractShape"]
 radius = 56.0
@@ -44,9 +53,30 @@ spawn_point_path = NodePath("SpawnPoint")
 
 [node name="Background" type="Node2D" parent="."]
 
-[node name="Backdrop" type="Sprite2D" parent="Background"]
+[node name="BackParallax" type="Parallax2D" parent="Background"]
+z_index = -2
+scroll_scale = Vector2(0.995, 1)
+
+[node name="Backdrop" type="Sprite2D" parent="Background/BackParallax"]
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("12")
+centered = false
+script = ExtResource("13")
+
+[node name="Backdrop" type="Sprite2D" parent="Background"]
+z_index = -1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("20")
+centered = false
+script = ExtResource("13")
+
+[node name="FrontParallax" type="Parallax2D" parent="Background"]
+z_index = 1
+scroll_scale = Vector2(1.005, 1)
+
+[node name="Backdrop" type="Sprite2D" parent="Background/FrontParallax"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("21")
 centered = false
 script = ExtResource("13")
 
@@ -70,6 +100,7 @@ segments = 18
 position = Vector2(1318, 360)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/WeedBlocker"]
+position = Vector2(80, -6)
 shape = SubResource("EdgeWallShape")
 
 [node name="TrapWall" type="StaticBody2D" parent="Terrain"]
@@ -78,6 +109,13 @@ position = Vector2(7718, 360)
 collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/TrapWall"]
+shape = SubResource("EdgeWallShape")
+
+[node name="InnerGateBlocker" type="StaticBody2D" parent="Terrain"]
+visible = false
+position = Vector2(9060, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/InnerGateBlocker"]
 shape = SubResource("EdgeWallShape")
 
 [node name="Bounds" type="Node2D" parent="."]
@@ -99,6 +137,15 @@ position = Vector2(1750, 560)
 
 [node name="Props" type="Node2D" parent="."]
 
+[node name="WindowListeningTrigger" type="Area2D" parent="Props"]
+position = Vector2(350, 560)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/WindowListeningTrigger"]
+position = Vector2(0, -130)
+shape = SubResource("WindowListenShape")
+
+[node name="ListeningSfx" type="AudioStreamPlayer" parent="Props/WindowListeningTrigger"]
+
 [node name="WeedsGate" type="Area2D" parent="Props"]
 position = Vector2(1400, 560)
 script = ExtResource("15")
@@ -111,26 +158,35 @@ declined_text = "（占位）她收回手。"
 blocker_path = NodePath("../../Terrain/WeedBlocker")
 visual_path = NodePath("Visual")
 flag_to_set = &"courtyard_01.weeds_cleared"
+clear_sound_path = NodePath("ClearSfx")
 prompt_text = "查看杂草"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/WeedsGate"]
 position = Vector2(0, -28)
 shape = SubResource("InteractShape")
 
-[node name="Visual" type="Polygon2D" parent="Props/WeedsGate"]
-color = Color(0.32, 0.4, 0.24, 1)
-polygon = PackedVector2Array(-46, -110, 46, -110, 46, 0, -46, 0)
+[node name="Visual" type="Node2D" parent="Props/WeedsGate"]
+z_index = 1
+
+[node name="GrassArt" type="Sprite2D" parent="Props/WeedsGate/Visual"]
+position = Vector2(-1400, -560)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("25")
+centered = false
+script = ExtResource("13")
+
+[node name="ClearSfx" type="AudioStreamPlayer" parent="Props/WeedsGate"]
 
 [node name="GateSpot" type="Area2D" parent="Props"]
 position = Vector2(880, 560)
 script = ExtResource("4")
-display_text = "（占位）院门虚掩着。
-（占位）门轴上的锈迹是新的。
-（占位）有人不久前来过。"
+display_text = "门锁已经锈死。
+这里不像是最近才被封起来。
+很多年没有人从这扇门经过了。w"
 prompt_text = "调查院门"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/GateSpot"]
-position = Vector2(0, -28)
+position = Vector2(175, -30)
 shape = SubResource("InteractShape")
 
 [node name="Visual" type="Polygon2D" parent="Props/GateSpot"]
@@ -216,12 +272,35 @@ fade_path = NodePath("../../ScreenFade")
 reset_text = "（占位）她明明一直往西走。
 （占位）再抬头，还是这道门前。"
 
+[node name="Lanterns" type="Node2D" parent="."]
+
+[node name="LanternOne" type="Node2D" parent="Lanterns"]
+script = ExtResource("24")
+amplitude = 7.0
+phase = 3.14159
+
+[node name="Art" type="Sprite2D" parent="Lanterns/LanternOne"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("22")
+centered = false
+script = ExtResource("13")
+
+[node name="LanternTwo" type="Node2D" parent="Lanterns"]
+script = ExtResource("24")
+amplitude = 7.0
+
+[node name="Art" type="Sprite2D" parent="Lanterns/LanternTwo"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("23")
+centered = false
+script = ExtResource("13")
+
 [node name="NPCs" type="Node2D" parent="."]
 
 [node name="Cutscenes" type="Node" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("2")]
-move_speed = 220.0
+move_speed = 1100.0
 
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")

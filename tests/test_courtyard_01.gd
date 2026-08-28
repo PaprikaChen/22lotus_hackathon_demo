@@ -9,7 +9,10 @@ extends Node2D
 ##   · E 调查走共用对话框、提示语上屏
 ##   · 梦奁信物照常拾取（保留原系统）
 ##   · 尾部小关卡：x>=7900 一次性激活、x<=7800 黑幕重置回 x=8300、解锁后失效
-##   · 三重旋锁：三层命中不互抢、22.5° 档位 / 半档回弹 / 跨 ±180°、顺序判定
+##   · 三重旋锁：三层命中不互抢、45° 档位 / 半档回弹 / 跨 ±180°
+##   · 原点是顺时针硬停点：只拨得动逆时针，拨回来停在原点
+##   · 锁的判定：点「解锁」才结算；顺序错→归位+提示，次数错→静默归位
+##   · 门后始终有实体阻挡；开锁 = 自动跳转 courtyard_02，不靠徒步走过去
 ##   · 出口门槛：锁没开走不了；开锁后按 E 走向 courtyard_02（含读档恢复）
 ##   · 前情提要：逐段推进、最后一段之后发 finished
 ##   · 画廊 + 全局存储：解锁 / NEW 角标 / 跨"存档"保留
@@ -51,7 +54,10 @@ func _run_self_test() -> void:
 	await _test_exit_gate_restored()
 	await _test_backtrack_trap()
 	await _test_rotary_lock()
+	await _test_origin_clockwise_stop()
 	await _test_rotary_lock_solution()
+	await _test_unlock_button_click()
+	await _test_gate_blocker()
 	await _test_new_game_flow()
 	await _test_prologue()
 	await _test_gallery()
@@ -222,7 +228,8 @@ func _test_interaction_and_memory() -> void:
 	# E 调查 → 文字进共用对话框
 	gate.interact(p)
 	_check(bool(box.is_showing()), "调查后共用对话框打开")
-	_check(String(box.get_current_text()).contains("院门"), "院门文字进对话框")
+	_check(String(gate.display_text).begins_with(String(box.get_current_text())),
+		"院门文字进对话框（对齐节点自己的文案，不写死措辞）")
 	_check(p.is_input_locked(), "读文字期间玩家被锁")
 	while bool(box.is_showing()):
 		box.advance()
@@ -285,10 +292,9 @@ func _test_exit_gate() -> void:
 	_check(StoryFlagManager.has_flag(UNLOCK_FLAG), "正确序列 → 写下门已解锁的 Flag")
 	_check(not lock.is_open(), "成功后界面自动关闭")
 	_check(exit_node.is_open(), "解锁后出口打开")
-
-	exit_node.interact(p)
 	_check(left.size() == 1 and left[0].ends_with("courtyard_02.tscn"),
-		"解锁后按 E 走向 courtyard_02")
+		"开锁后自动跳转 courtyard_02")
+
 	exit_node.interact(p)
 	_check(left.size() == 1, "重复触发只走一次")
 
@@ -305,6 +311,11 @@ func _test_exit_gate_restored() -> void:
 	var trap: BacktrackTrap = level.get_node("Props/InnerGateTrap")
 
 	_check(exit_node.is_open(), "带着解锁 Flag 进关，门是开的")
+	var left: Array[String] = []
+	level.level_left.connect(func(target: String) -> void: left.append(target))
+	exit_node.interact(level.get_node("Player"))
+	_check(left.size() == 1 and left[0].ends_with("courtyard_02.tscn"),
+		"已解锁时按 E 直接进里院")
 	_check(lock.is_solved(), "锁已经是解开状态，不会再要求重解")
 	_check(not trap.is_armed(), "解锁后返回封锁不再生效")
 
@@ -427,16 +438,21 @@ func _wait_settled(ring: RotaryLockRing) -> void:
 		await get_tree().process_frame
 
 
-## 按占位谜底输入完整正确序列。谜底改了这里不用改——读的是同一份配置。
+## 按谜底输入完整正确序列，然后点「解锁」。谜底改了这里不用改——读同一份配置。
 func _solve_lock(lock: RotaryLockUI) -> void:
 	for step in InnerGateLockConfig.SOLUTION:
-		var ring: RotaryLockRing = lock.get_ring(step["layer"])
-		var deg := InnerGateLockConfig.DETENT_DEGREES \
-			* float(step["steps"]) * float(step["direction"])
-		await _drag_ring(ring, deg)
+		await _turn(lock, step["layer"], int(step["steps"]))
+	lock.try_unlock()
 	# 成功演出有一小段时长（solved 在演出之后发），等界面自己关掉。
 	while lock.is_open():
 		await get_tree().process_frame
+
+
+## 把某一层拨 steps 档。**逆时针**（负角度）——原点是顺时针的硬停点，
+## 从 0 档只拨得动逆时针，测试必须走玩家真正能走的那条路。
+func _turn(lock: RotaryLockUI, layer_id: StringName, steps: int) -> void:
+	await _drag_ring(lock.get_ring(layer_id),
+		-InnerGateLockConfig.DETENT_DEGREES * float(steps))
 
 
 func _test_rotary_lock() -> void:
@@ -448,50 +464,89 @@ func _test_rotary_lock() -> void:
 	_check(outer != null and middle != null and inner != null, "三层都在场上")
 	var center: Vector2 = (outer.get_parent() as Control).global_position
 
-	# 命中区域：三层互不遮挡（内层的点不会被外层花瓣抢走）
+	# 命中区域：外层从中层外缘接管到自己的大半径，不会无限扩张。
 	_check(inner.contains_point(center + Vector2(20, 0)), "锁心附近命中内层")
 	_check(not middle.contains_point(center + Vector2(20, 0)), "内层的点不属于中层")
 	_check(not outer.contains_point(center + Vector2(20, 0)), "内层的点不属于外层")
-	_check(middle.contains_point(center + Vector2(100, 0)), "中环命中中层")
-	_check(not outer.contains_point(center + Vector2(100, 0)), "中环的点不属于外层")
-	_check(outer.contains_point(center + Vector2(0, -186)), "花瓣命中外层")
+	# 半径按正式素材实测：瓶子 109 / 圆环 109-226 / 四叶草 226-408
+	_check(middle.contains_point(center + Vector2(160, 0)), "中环命中中层")
+	_check(not outer.contains_point(center + Vector2(160, 0)), "中环的点不属于外层")
+	_check(not inner.contains_point(center + Vector2(160, 0)), "中环的点不属于内层")
+	_check(outer.contains_point(center + Vector2(0, -320)), "四叶草圈命中外层")
+	_check(not middle.contains_point(center + Vector2(0, -320)), "外圈的点不属于中层")
+	_check(not outer.contains_point(center + Vector2(0, -430)), "素材最外缘之外不命中")
 
 	# 档位：不足半档回弹、不计数
 	var steps: Array[int] = []
 	outer.detent_stepped.connect(func(d: int) -> void: steps.append(d))
-	await _drag_ring(outer, 10.0)
+	await _drag_ring(outer, -10.0)
 	_check(steps.is_empty(), "不足半档（10°）不产生档位输入")
 	_check(outer.get_detent_index() == 0, "不足半档回弹到原档位")
 
-	# 达到半档 → 吸附到下一档并计一次
+	# 超过半档（45° 的半档 = 22.5°）→ 吸附到下一档并计一次：
+	# 原点是顺时针的硬停点，从 0 档顺时针根本拨不动（另见
+	# `_test_origin_clockwise_stop`）。
 	steps.clear()
-	await _drag_ring(outer, 15.0)
-	_check(steps == [1], "达到半档吸附到下一档并计一次")
-	_check(outer.get_detent_index() == 1, "档位下标 +1")
+	await _drag_ring(outer, -(InnerGateLockConfig.HALF_DETENT_DEGREES + 1.0))
+	_check(steps == [-1], "超过 22.5° 半档阈值后吸附到下一档并计一次")
+	_check(outer.get_detent_index() == -1, "档位下标 -1")
 
-	# 快速跨多档逐档计数（3 档 = 67.5°，一次拖到位）
+	# 快速跨多档逐档计数（3 档 = 135°，一次拖到位）
 	steps.clear()
-	await _drag_ring(outer, 67.5, 1)
-	_check(steps == [1, 1, 1], "一次快速拖过 3 档逐档计数，不漏计")
-	_check(outer.get_detent_index() == 4, "档位累计正确")
+	await _drag_ring(outer, -InnerGateLockConfig.DETENT_DEGREES * 3.0, 1)
+	_check(steps == [-1, -1, -1], "一次快速拖过 3 档逐档计数，不漏计")
+	_check(outer.get_detent_index() == -4, "档位累计正确")
 
-	# 反向计数
+	# 反向（拨回来）计数
 	steps.clear()
-	await _drag_ring(outer, -45.0)
-	_check(steps == [-1, -1], "反向拖动计成两档逆时针")
-	_check(outer.get_detent_index() == 2, "反向后档位下标正确")
+	await _drag_ring(outer, InnerGateLockConfig.DETENT_DEGREES * 2.0)
+	_check(steps == [1, 1], "反向拖动计成两档顺时针")
+	_check(outer.get_detent_index() == -2, "反向后档位下标正确")
 
-	# 跨 ±180° 不跳变：从 170° 开始连续往正方向拖 40°
+	# 跨 ±180° 不跳变：从 -170° 开始连续往逆时针拖 40°（正好跨过 ±180°）
 	steps.clear()
 	outer.set_detent_index(0)
 	var radius := 100.0
-	outer.begin_drag(center + Vector2(radius, 0.0).rotated(deg_to_rad(170.0)))
+	outer.begin_drag(center + Vector2(radius, 0.0).rotated(deg_to_rad(-170.0)))
 	for i in range(1, 6):
-		outer.update_drag(center + Vector2(radius, 0.0).rotated(deg_to_rad(170.0 + i * 5.0)))
+		outer.update_drag(center + Vector2(radius, 0.0).rotated(deg_to_rad(-170.0 - i * 5.0)))
 	outer.end_drag()
-	_check(steps == [1], "跨 179°→-179° 连续拖动仍是一档正向，无跳变")
+	_check(steps == [-1], "跨 -179°→179° 连续拖动仍是一档逆时针，无跳变")
 
 	await _drop(level)
+
+
+## 原点是顺时针方向的硬停点：从 0 档只拨得动逆时针。拨出去之后可以顺时针
+## 拨回来，但回到原点就停住。这是给玩家的方向暗示。
+func _test_origin_clockwise_stop() -> void:
+	StoryFlagManager.clear_flag(UNLOCK_FLAG)
+	var level = await _load_level()
+	var lock: RotaryLockUI = level.get_node("RotaryLock")
+	var ring: RotaryLockRing = lock.get_ring(InnerGateLockConfig.LAYER_MIDDLE)
+	var steps := [0]
+	ring.detent_stepped.connect(func(_d: int) -> void: steps[0] += 1)
+	lock.open()
+
+	# 原点往顺时针拨三档的量：一档都不该动
+	await _drag_ring(ring, InnerGateLockConfig.DETENT_DEGREES * 3.0)
+	_check(ring.get_detent_index() == 0, "原点顺时针拨不动（档位停在 0）")
+	_check(steps[0] == 0, "原点顺时针拨不产生档位输入")
+	_check(absf(ring.rotation_degrees) < 0.01, "原点顺时针拨不动（角度也没变）")
+	_check(lock.get_input_log().is_empty(), "原点顺时针拨不进输入序列")
+
+	# 逆时针照常
+	await _drag_ring(ring, -InnerGateLockConfig.DETENT_DEGREES * 2.0)
+	_check(ring.get_detent_index() == -2, "逆时针照常拨得动")
+	_check(steps[0] == 2, "逆时针两档记两次")
+
+	# 拨出去之后可以顺时针拨回来，但停在原点、不越过去
+	await _drag_ring(ring, InnerGateLockConfig.DETENT_DEGREES * 5.0)
+	_check(ring.get_detent_index() == 0, "顺时针只能拨回原点，不会越过")
+	_check(steps[0] == 4, "拨回来的两档照常计数（只计到原点为止）")
+
+	lock.close()
+	await _drop(level)
+	StoryFlagManager.clear_flag(UNLOCK_FLAG)
 
 
 func _test_rotary_lock_solution() -> void:
@@ -500,45 +555,164 @@ func _test_rotary_lock_solution() -> void:
 	var lock: RotaryLockUI = level.get_node("RotaryLock")
 	var solved := [0]
 	lock.solved.connect(func() -> void: solved[0] += 1)
-	var detent := InnerGateLockConfig.DETENT_DEGREES
+	var inner := InnerGateLockConfig.LAYER_INNER
+	var outer := InnerGateLockConfig.LAYER_OUTER
+	var middle := InnerGateLockConfig.LAYER_MIDDLE
+	var hint: Label = level.get_node("RotaryLock/Root/HintLabel")
+	var default_hint := hint.text
 
 	lock.open()
-	# 错误的层：第一步该拨外层，先动中层
-	await _drag_ring(lock.get_ring(InnerGateLockConfig.LAYER_MIDDLE), detent)
-	_check(lock.get_progress_step() == 0 and lock.get_progress_count() == 0,
-		"拨错层 → 进度重置")
-	# 错误方向：外层反着拨
-	await _drag_ring(lock.get_ring(InnerGateLockConfig.LAYER_OUTER), -detent)
-	_check(lock.get_progress_step() == 0 and lock.get_progress_count() == 0,
-		"方向错 → 进度重置")
-	# 次数不足就换层
-	await _drag_ring(lock.get_ring(InnerGateLockConfig.LAYER_OUTER), detent * 2.0)
-	_check(lock.get_progress_count() == 2, "外层已计 2 档")
-	await _drag_ring(lock.get_ring(InnerGateLockConfig.LAYER_MIDDLE), -detent)
-	_check(lock.get_progress_step() == 0 and lock.get_progress_count() == 0,
-		"次数不足就换层 → 进度重置")
-	# 次数过多：外层一次拨 4 档
-	await _drag_ring(lock.get_ring(InnerGateLockConfig.LAYER_OUTER), detent * 4.0, 1)
-	_check(lock.get_progress_step() == 0 and lock.get_progress_count() == 0,
-		"次数过多 → 进度重置")
-	# 不足半档的拖动既不计数也不算失败
-	await _drag_ring(lock.get_ring(InnerGateLockConfig.LAYER_OUTER), detent * 3.0, 3)
-	_check(lock.get_progress_step() == 1, "外层 3 档走满 → 进入第二步")
-	await _drag_ring(lock.get_ring(InnerGateLockConfig.LAYER_INNER), 5.0)
-	_check(lock.get_progress_step() == 1 and lock.get_progress_count() == 0,
-		"不足半档的拖动不计数也不算错")
-	_check(solved[0] == 0, "以上都没能开锁")
 
-	# 完整正确序列
+	# 转动本身不结算：把正确序列拨完但**不点解锁**，锁不该开
+	await _turn(lock, inner, 4)
+	await _turn(lock, outer, 5)
+	await _turn(lock, middle, 2)
+	_check(solved[0] == 0, "转到位但没点解锁 → 不结算")
+	_check(lock.get_input_log().size() == 3, "输入序列记成三个阶段")
+	_check(int(lock.get_input_log()[0]["steps"]) == 4, "连续拨同一层并进同一阶段")
+
+	# 顺序错：梅花 → 瓶子 → 圆
 	lock.close()
 	lock.open()
+	await _turn(lock, outer, 5)
+	await _turn(lock, inner, 4)
+	await _turn(lock, middle, 2)
+	lock.try_unlock()
+	_check(solved[0] == 0, "顺序错不能开锁")
+	_check(hint.text == lock.wrong_order_hint, "顺序错弹出提示")
+	_check(lock.get_input_log().is_empty(), "顺序错后清空操作记录")
+	_check(lock.get_ring(inner).get_detent_index() == 0
+		and lock.get_ring(outer).get_detent_index() == 0
+		and lock.get_ring(middle).get_detent_index() == 0,
+		"顺序错后三层归位")
+
+	# 顺序错（换层之后回头拨之前那层）：瓶子 → 梅花 → 瓶子 → 圆
+	await _turn(lock, inner, 4)
+	await _turn(lock, outer, 5)
+	await _turn(lock, inner, 1)
+	await _turn(lock, middle, 2)
+	_check(lock.get_input_log().size() == 4, "回头拨之前那层会多出一个阶段")
+	lock.try_unlock()
+	_check(solved[0] == 0, "回头拨之前那层判成顺序错")
+	_check(hint.text == lock.wrong_order_hint, "同样弹出顺序提示")
+
+	# 次数错（顺序对）：瓶子×3 → 梅花×5 → 圆×2，静默归位
+	await _turn(lock, inner, 3)
+	_check(hint.text == default_hint, "重新开始转动后提示复位")
+	await _turn(lock, outer, 5)
+	await _turn(lock, middle, 2)
+	lock.try_unlock()
+	_check(solved[0] == 0, "次数错不能开锁")
+	_check(hint.text == default_hint, "次数错**不**出任何提示")
+	_check(lock.get_input_log().is_empty(), "次数错后同样清空操作记录")
+	_check(lock.get_ring(inner).get_detent_index() == 0, "次数错后也归位")
+
+	# 归位之后按钮还能继续用：这次输对
 	await _solve_lock(lock)
-	_check(solved[0] == 1, "完整正确序列开锁，且 solved 只发一次")
+	_check(solved[0] == 1, "失败归位后仍可再次提交，正确序列开锁")
 	_check(lock.is_solved(), "开锁后锁进入已解状态")
+	var unlock_button: Button = level.get_node("RotaryLock/Root/UnlockButton")
+	_check(unlock_button.disabled, "开锁后解锁按钮禁用，防重复提交")
+	lock.try_unlock()
+	_check(solved[0] == 1, "开锁后再提交也不会重复结算")
 	for step in InnerGateLockConfig.SOLUTION:
 		var ring: RotaryLockRing = lock.get_ring(step["layer"])
 		_check(not ring.begin_drag(Vector2.ZERO),
 			"开锁后 %s 层不能再拖" % step["layer"])
+
+	await _drop(level)
+	StoryFlagManager.clear_flag(UNLOCK_FLAG)
+
+
+# --- 「解锁」按钮的真实点击路径 -----------------------------------------------
+
+## 用 `push_input()` 走**真正的输入管线**（_input → GUI 派发），确认锁体不会
+## 把按钮的点击吞掉：`_input()` 跑在 GUI 之前，无条件 set_input_as_handled()
+## 会让按钮完全点不动，这条测试就是为了钉住这一点。
+func _click_at(position: Vector2) -> void:
+	for is_pressed in [true, false]:
+		var ev := InputEventMouseButton.new()
+		ev.button_index = MOUSE_BUTTON_LEFT
+		ev.pressed = is_pressed
+		ev.position = position
+		ev.global_position = position
+		get_viewport().push_input(ev, true)
+		await get_tree().process_frame
+
+
+func _test_unlock_button_click() -> void:
+	StoryFlagManager.clear_flag(UNLOCK_FLAG)
+	var level = await _load_level()
+	var lock: RotaryLockUI = level.get_node("RotaryLock")
+	var button: Button = level.get_node("RotaryLock/Root/UnlockButton")
+	var clicks := [0]
+	button.pressed.connect(func() -> void: clicks[0] += 1)
+
+	lock.open()
+	await get_tree().process_frame
+	_check(button.visible and not button.disabled, "界面打开时「解锁」按钮可用")
+
+	# 点按钮：事件必须穿过锁体到达 GUI
+	await _click_at(button.get_global_rect().get_center())
+	_check(clicks[0] == 1, "鼠标点击「解锁」按钮能触发（锁体没吞掉事件）")
+
+	# 点在锁体上：这次应该被锁体接管（开始拖某一层），不透给 GUI
+	var center: Vector2 = (lock.get_ring(InnerGateLockConfig.LAYER_INNER)
+		.get_parent() as Control).global_position
+	var ev := InputEventMouseButton.new()
+	ev.button_index = MOUSE_BUTTON_LEFT
+	ev.pressed = true
+	ev.position = center
+	ev.global_position = center
+	get_viewport().push_input(ev, true)
+	_check(get_viewport().is_input_handled(), "点在锁体上时事件被锁体接管")
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	release.position = center
+	release.global_position = center
+	get_viewport().push_input(release, true)
+	await get_tree().process_frame
+	_check(clicks[0] == 1, "拖锁体不会顺手按到按钮")
+
+	lock.close()
+	await _drop(level)
+	StoryFlagManager.clear_flag(UNLOCK_FLAG)
+
+
+# --- 未解锁时的通行阻挡 -------------------------------------------------------
+
+func _test_gate_blocker() -> void:
+	StoryFlagManager.clear_flag(UNLOCK_FLAG)
+	var level = await _load_level()
+	var p: Player = level.get_node("Player")
+	var blocker: StaticBody2D = level.get_node("Terrain/InnerGateBlocker")
+	var lock: RotaryLockUI = level.get_node("RotaryLock")
+	var director = level.get_node("StoryDirector")
+	var left: Array[String] = []
+	level.level_left.connect(func(target: String) -> void: left.append(target))
+
+	_check(blocker.collision_layer == 1, "锁没开时门后有实体阻挡")
+	# 真的走过去撞一下：站在门前往东按住 D，不该越过挡墙
+	p.global_position.x = 8950.0
+	await get_tree().physics_frame
+	await _hold(&"move_right", 60)
+	_check(p.global_position.x < blocker.global_position.x,
+		"锁没开时走不过门（被挡墙拦住）")
+
+	# 开锁 → 自动进里院，**阻挡不撤**（右边那片地方永远走不进去）
+	lock.open()
+	await _solve_lock(lock)
+	_check(StoryFlagManager.has_flag(UNLOCK_FLAG), "解锁 Flag 已写下")
+	_check(left.size() == 1 and left[0].ends_with("courtyard_02.tscn"),
+		"开锁后自动跳转 courtyard_02")
+	_check(blocker.collision_layer == 1, "开锁后阻挡仍在，不能徒步绕到锁右边")
+	await _hold(&"move_right", 60)
+	_check(p.global_position.x < blocker.global_position.x, "开锁后依旧走不过挡墙")
+
+	# 读档恢复链路同样保持阻挡
+	director._apply_inner_gate_lock()
+	_check(blocker.collision_layer == 1, "带解锁 Flag 恢复时阻挡照旧")
 
 	await _drop(level)
 	StoryFlagManager.clear_flag(UNLOCK_FLAG)

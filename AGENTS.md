@@ -103,7 +103,13 @@
     被送回来的那句字幕只出第一次（`reset_text_once`），之后直接黑幕重生；
     首次走进尾部区域不出字幕。
     Director 解锁后调 `disarm()`，旧触发器留在场景里也不再生效。
-    门（`Props/ToNextLevel`）的交互点在 x=9000。
+    三层的**原点是顺时针方向的硬停点**（`InnerGateLockConfig.MAX_DETENT_INDEX = 0`）：
+    从 0 档只拨得动逆时针（给玩家方向暗示），拨出去之后可以顺时针拨回来但
+    停在原点、不越过去。
+    门（`Props/ToNextLevel`）的交互点在 x=9000，门后 `Terrain/InnerGateBlocker`
+    是**永久**实体阻挡：锁右边那片地方玩家永远走不进去，**开锁即自动跳转
+    courtyard_02**（Director 的 `_enter_inner_courtyard()` → 关卡的
+    `go_to_next_level()`，幂等）。已解锁时重进本关按 E 也走同一条路。
   - `scripts/ui/screen_fade.gd` + `scenes/ui/screen_fade.tscn`（ScreenFade，
     layer 95）：**项目唯一可复用的全屏淡入淡出**，`fade_out()` / `fade_in()`
     均可 await，重入自动掐掉上一个 Tween。只管画面黑白，不锁玩家不切场景。

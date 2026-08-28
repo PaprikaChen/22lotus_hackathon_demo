@@ -60,11 +60,13 @@ mouse_filter = 2
 [node name="SpeakerLabel" type="Label" parent="Root/Panel/Margin/HBox/TextColumn"]
 visible = false
 layout_mode = 2
+horizontal_alignment = 1
 theme_override_font_sizes/font_size = 18
 
 [node name="TextLabel" type="Label" parent="Root/Panel/Margin/HBox/TextColumn"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_alignment = 1
 theme_override_font_sizes/font_size = 20
 autowrap_mode = 3
 

@@ -84,7 +84,7 @@ polygon = PackedVector2Array(-22, -70, 22, -70, 22, 0, -22, 0)
 [node name="Cutscenes" type="Node" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("2")]
-move_speed = 220.0
+move_speed = 1100.0
 
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")

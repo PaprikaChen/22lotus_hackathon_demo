@@ -15,6 +15,12 @@ signal closed
 signal choice_selected(index: int)
 
 const LOCK_SOURCE := &"dialogue_box"
+## 人名使用低饱和的莫兰迪色，正文保持统一，避免颜色抢过台词本身。
+const SPEAKER_COLOR_DEFAULT := Color(0.78, 0.74, 0.82, 1.0)
+const SPEAKER_COLOR_LINIANG := Color(0.56, 0.43, 0.65, 1.0)
+const SPEAKER_COLOR_SERVANT := Color(0.40, 0.56, 0.68, 1.0)
+const SPEAKER_COLOR_CHUNXIANG := Color(0.74, 0.51, 0.61, 1.0)
+const SPEAKER_COLOR_MAID := Color(0.67, 0.49, 0.57, 1.0)
 
 ## Player to lock while the box is open (optional).
 @export var player_path: NodePath
@@ -97,6 +103,7 @@ func show_text(text: String, portrait: Texture2D = null, speaker: String = "") -
 	_portrait.visible = portrait != null
 	_speaker_label.text = speaker
 	_speaker_label.visible = not speaker.is_empty()
+	_speaker_label.add_theme_color_override(&"font_color", _get_speaker_color(speaker))
 	_lock_player()
 	_show_current_line()
 
@@ -197,6 +204,7 @@ func _enter_choice_mode() -> void:
 	for option in _options:
 		var label := Label.new()
 		label.text = option
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.add_theme_font_size_override(&"font_size", 20)
 		_choice_list.add_child(label)
 	_choice_list.visible = true
@@ -227,6 +235,20 @@ func _refresh_choice_labels() -> void:
 		var selected := i == _choice_index
 		label.text = ("▸ %s" if selected else "   %s") % _options[i]
 		label.modulate = Color(1, 1, 1, 1) if selected else Color(1, 1, 1, 0.55)
+
+
+func _get_speaker_color(speaker: String) -> Color:
+	match speaker:
+		"丽娘":
+			return SPEAKER_COLOR_LINIANG
+		"家丁":
+			return SPEAKER_COLOR_SERVANT
+		"丫鬟春香":
+			return SPEAKER_COLOR_CHUNXIANG
+		"丫鬟":
+			return SPEAKER_COLOR_MAID
+		_:
+			return SPEAKER_COLOR_DEFAULT
 
 
 func _confirm_choice() -> void:

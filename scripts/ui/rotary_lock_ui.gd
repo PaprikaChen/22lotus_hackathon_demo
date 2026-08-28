@@ -7,14 +7,17 @@ extends CanvasLayer
 ##     只释放自己那一把，参照 `memory_box_ui.gd` 的做法）；
 ##   · 把鼠标按下的点按 **内 → 中 → 外** 的顺序问三层的 `contains_point()`，
 ##     命中谁就只拖谁——外层的四个花瓣因此不会盖住中层和内层；
-##   · 收三层的 `detent_stepped`，按「层 / 方向 / 档数」的输入序列判定谜底；
+##   · 收三层的 `detent_stepped`，把「拨了哪层、拨了几档」记成输入序列，
+##     **点「解锁」按钮时才结算**（转到位不自动开锁）；
 ##   · 档位音效和开锁音效是**两个独立**的 AudioStreamPlayer 事件。
 ##
 ## **它不碰门、不写 Flag、不切场景**：成功只发 `solved`，后果由 StoryDirector
 ## 决定（AGENTS.md §5.5）。主动关闭发 `closed`，不算成功、不改门的状态。
 ##
 ## 判定依据是逐档输入序列，不是三层的最终角度 —— 正反来回转不可能靠净角度
-## 碰巧绕过顺序。
+## 碰巧绕过顺序。判定顺序固定：**先查阶段顺序，再查每段次数**。
+##   顺序错 → 三层归位 + 清空记录 + 出提示（`wrong_order_hint`）；
+##   顺序对次数错 → 三层归位 + 清空记录，**不出任何提示**。
 
 signal opened
 signal closed ## 关闭（无论成功与否）
@@ -30,7 +33,11 @@ const LOCK_SOURCE := &"rotary_lock"
 @export var inner_ring_path: NodePath = ^"Root/LockCenter/InnerRing"
 @export var lock_center_path: NodePath = ^"Root/LockCenter"
 @export var close_button_path: NodePath = ^"Root/CloseButton"
+@export var unlock_button_path: NodePath = ^"Root/UnlockButton"
 @export var hint_label_path: NodePath = ^"Root/HintLabel"
+@export_group("Text")
+## 顺序错误时的提示。次数错误**不出提示**（设计要求），所以只有这一条。
+@export var wrong_order_hint: String = "好像顺序不太对……"
 @export_group("Audio")
 ## 档位「咔哒」。**占位为空**：没挂资源时安全跳过，不影响功能。
 @export var detent_sfx: AudioStream = null
@@ -53,9 +60,13 @@ var _is_solved: bool = false
 var _is_finishing: bool = false
 var _dragging_ring: RotaryLockRing = null
 
-## 判定进度：当前在谜底的第几步、这一步已经走了几档。
-var _step_index: int = 0
-var _step_count: int = 0
+## 本轮的输入序列：[{"layer": StringName, "steps": int, "directions": Array}]。
+## 连续拨同一层合并进同一个阶段；换层就追加一个新阶段。
+## 点「解锁」时拿它和 `InnerGateLockConfig.SOLUTION` 比。
+var _input_log: Array[Dictionary] = []
+var _unlock_button: BaseButton = null
+## 界面里那句默认提示，出过错误提示之后要还原回去。
+var _default_hint: String = ""
 
 var _cancel_held: bool = false
 var _feedback_tween: Tween = null
@@ -72,6 +83,11 @@ func _ready() -> void:
 	var close_button := get_node_or_null(close_button_path) as BaseButton
 	if close_button != null:
 		close_button.pressed.connect(close)
+	_unlock_button = get_node_or_null(unlock_button_path) as BaseButton
+	if _unlock_button != null:
+		_unlock_button.pressed.connect(try_unlock)
+	if _hint != null:
+		_default_hint = _hint.text
 	_reset_progress()
 
 
@@ -115,14 +131,9 @@ func get_ring(layer_id: StringName) -> RotaryLockRing:
 	return _rings_by_id.get(layer_id, null) as RotaryLockRing
 
 
-## 当前在谜底的第几步（0 起）。
-func get_progress_step() -> int:
-	return _step_index
-
-
-## 当前这一步已经走了几档。
-func get_progress_count() -> int:
-	return _step_count
+## 本轮已经记下的输入序列（阶段列表）。调试与回归测试用。
+func get_input_log() -> Array[Dictionary]:
+	return _input_log.duplicate(true)
 
 
 ## 单一闸门：对话 / 过场 / 梦奁都持玩家输入锁，所以这里一句就够，
@@ -141,6 +152,7 @@ func open() -> void:
 	_is_open = true
 	visible = true
 	_reset_progress()
+	_set_unlock_button_enabled(true)
 	for ring in _rings:
 		ring.set_input_locked(false)
 	if _player != null and _player.has_method("lock_input"):
@@ -168,6 +180,8 @@ func set_solved(value: bool) -> void:
 	_is_solved = value
 	for ring in _rings:
 		ring.set_input_locked(value)
+	# 开过的锁不能再提交一次。
+	_set_unlock_button_enabled(not value)
 
 
 # --- 输入 ---------------------------------------------------------------------
@@ -188,11 +202,15 @@ func _input(event: InputEvent) -> void:
 		var button := event as InputEventMouseButton
 		if button.button_index != MOUSE_BUTTON_LEFT:
 			return
+		# **只有真的抓到某一层时才吞掉事件。**`_input()` 跑在 GUI 派发之前，
+		# 无条件 set_input_as_handled() 会把「解锁」/「收手」按钮的点击一起吞掉，
+		# 按钮就永远收不到鼠标。没抓到层就放行，让它继续走 GUI。
 		if button.pressed:
-			_try_begin_drag(_to_canvas(button.position))
-		else:
+			if _try_begin_drag(_to_canvas(button.position)):
+				get_viewport().set_input_as_handled()
+		elif _dragging_ring != null:
 			_end_drag(false)
-		get_viewport().set_input_as_handled()
+			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion and _dragging_ring != null:
 		_dragging_ring.update_drag(_to_canvas((event as InputEventMouseMotion).position))
 		get_viewport().set_input_as_handled()
@@ -205,13 +223,16 @@ func _to_canvas(position: Vector2) -> Vector2:
 	return transform.affine_inverse() * position
 
 
-func _try_begin_drag(point: Vector2) -> void:
+## 返回是否接管了这次按下（= 这个点命中了某一层）。false 表示这次点击不属于
+## 锁体，调用方必须放行给 GUI（按钮就在那下面）。
+func _try_begin_drag(point: Vector2) -> bool:
 	if _is_solved or _is_finishing:
-		return
+		return false
 	for ring in _rings:
 		if ring.contains_point(point) and ring.begin_drag(point):
 			_dragging_ring = ring
-			return
+			return true
+	return false
 
 
 func _end_drag(cancelled: bool) -> void:
@@ -235,38 +256,113 @@ func _notification(what: int) -> void:
 # --- 判定 ---------------------------------------------------------------------
 
 func _reset_progress() -> void:
-	_step_index = 0
-	_step_count = 0
+	_input_log.clear()
 
 
+## 转动只记账，不结算。连续拨同一层并进同一个阶段；换层追加一个新阶段。
 func _on_detent_stepped(direction: int, ring: RotaryLockRing) -> void:
 	# 每跨一档一次「咔哒」，和最终开锁音是两个事件。
 	_play(_detent_player)
 	if _is_solved or _is_finishing:
 		return
-	var expected: Dictionary = InnerGateLockConfig.SOLUTION[_step_index]
-	if ring.layer_id != expected["layer"] or direction != int(expected["direction"]):
-		InnerGateLockConfig.log_debug(
-			"输入 %s/%+d 与第 %d 步 (%s/%+d) 不符 → 本轮失败"
-			% [ring.layer_id, direction, _step_index, expected["layer"], expected["direction"]])
-		_on_wrong_input()
-		return
-	_step_count += 1
-	InnerGateLockConfig.log_debug("第 %d 步 %s 进度 %d/%d"
-		% [_step_index, ring.layer_id, _step_count, expected["steps"]])
-	if _step_count < int(expected["steps"]):
-		return
-	# 本步走满 → 进入下一步。下一次有效档位输入必须属于下一层，
-	# 继续拨这一层就会在上面的层判定里失败（= 次数过多）。
-	_step_index += 1
-	_step_count = 0
-	if _step_index >= InnerGateLockConfig.SOLUTION.size():
-		_on_solved()
+	_clear_hint()
+	if not _input_log.is_empty() and _input_log[-1]["layer"] == ring.layer_id:
+		var stage: Dictionary = _input_log[-1]
+		stage["steps"] = int(stage["steps"]) + 1
+		(stage["directions"] as Array).append(direction)
+	else:
+		_input_log.append({
+			"layer": ring.layer_id,
+			"steps": 1,
+			"directions": [direction],
+		})
+	InnerGateLockConfig.log_debug("记账：%s 第 %d 档（阶段 %d）"
+		% [ring.layer_id, int(_input_log[-1]["steps"]), _input_log.size() - 1])
 
 
-func _on_wrong_input() -> void:
+## 「解锁」按钮：**唯一的结算入口**。
+## 先查阶段顺序，再查每段次数；失败一律三层归位 + 清空记录，按钮继续可用。
+func try_unlock() -> void:
+	if not _is_open or _is_solved or _is_finishing:
+		return
+	if _dragging_ring != null:
+		# 手还按在某一层上：先把这一段收干净再判，免得半档悬着。
+		_end_drag(false)
+	if not _is_order_correct():
+		InnerGateLockConfig.log_debug("解锁失败：顺序不对 %s" % [_logged_layers()])
+		_on_wrong_attempt(true)
+		return
+	if not _are_counts_correct():
+		InnerGateLockConfig.log_debug("解锁失败：次数不对 %s" % [_logged_steps()])
+		_on_wrong_attempt(false)
+		return
+	_on_solved()
+
+
+## 顺序：记下的阶段序列必须和谜底的层序列**逐个一致**（长度也要一致）。
+## 换层之后回头拨会多出一个阶段，因此天然被判成顺序错。
+func _is_order_correct() -> bool:
+	if _input_log.size() != InnerGateLockConfig.SOLUTION.size():
+		return false
+	for i in _input_log.size():
+		if _input_log[i]["layer"] != InnerGateLockConfig.SOLUTION[i]["layer"]:
+			return false
+	return true
+
+
+## 次数（顺序已经确认对了才查）。谜底里 `direction` 不是 DIRECTION_ANY 时
+## 一并要求这一段的每一档都朝那个方向。
+func _are_counts_correct() -> bool:
+	for i in _input_log.size():
+		var expected: Dictionary = InnerGateLockConfig.SOLUTION[i]
+		if int(_input_log[i]["steps"]) != int(expected["steps"]):
+			return false
+		var want := int(expected["direction"])
+		if want != InnerGateLockConfig.DIRECTION_ANY:
+			for d in (_input_log[i]["directions"] as Array):
+				if int(d) != want:
+					return false
+	return true
+
+
+## 失败：三层归位 + 清空记录。顺序错才出提示，次数错静默。
+func _on_wrong_attempt(show_hint: bool) -> void:
 	_reset_progress()
+	_return_rings_home()
 	_play_failure_feedback()
+	if show_hint and _hint != null:
+		_hint.text = wrong_order_hint
+
+
+## 归位 = 三层都回到 0 档。走 ring 现成的吸附插值，手感和平时落位一致。
+func _return_rings_home() -> void:
+	for ring in _rings:
+		ring.set_detent_index(0, true)
+
+
+func _clear_hint() -> void:
+	if _hint != null and _hint.text != _default_hint:
+		_hint.text = _default_hint
+
+
+func _logged_layers() -> Array:
+	var out := []
+	for stage in _input_log:
+		out.append(stage["layer"])
+	return out
+
+
+func _logged_steps() -> Array:
+	var out := []
+	for stage in _input_log:
+		out.append(stage["steps"])
+	return out
+
+
+func _set_unlock_button_enabled(enabled: bool) -> void:
+	if _unlock_button != null:
+		_unlock_button.disabled = not enabled
+		_unlock_button.visible = enabled
 
 
 func _on_solved() -> void:
@@ -274,6 +370,8 @@ func _on_solved() -> void:
 	_is_finishing = true
 	for ring in _rings:
 		ring.set_input_locked(true)
+	# 开锁成功后按钮收起，防止重复提交。
+	_set_unlock_button_enabled(false)
 	_play(_unlock_player)
 	if _hint != null:
 		_hint.text = "锁芯落下了。"

@@ -31,6 +31,14 @@ signal cleared
 ## 清除后写的剧情 Flag，用于读档恢复。留空则不持久化（下次进关又长回来）。
 @export var flag_to_set: StringName = &""
 
+@export_group("Clear Presentation")
+## 现场拔除时，视觉先左右摇动再淡出；读档恢复仍直接隐藏。
+@export var clear_sway_degrees: float = 8.0
+@export_range(0.0, 3.0, 0.05, "suffix:s") var clear_sway_duration: float = 0.45
+@export_range(0.0, 3.0, 0.05, "suffix:s") var clear_fade_duration: float = 0.45
+## 可选的现场清除音效。未分配 stream 时安全跳过，方便先占位后补素材。
+@export var clear_sound_path: NodePath
+
 var _is_cleared: bool = false
 
 
@@ -52,15 +60,24 @@ func is_cleared() -> bool:
 ## 静默设终态，不发信号、不出文字。读档恢复和调试摆位用。
 func set_cleared(value: bool) -> void:
 	_is_cleared = value
+	_set_blocker_cleared(value)
+	var visual := get_node_or_null(visual_path) as CanvasItem
+	if visual != null:
+		visual.visible = not value
+		if not value:
+			visual.modulate = Color.WHITE
+			var visual_node := visual as Node2D
+			if visual_node != null:
+				visual_node.rotation = 0.0
+
+
+func _set_blocker_cleared(value: bool) -> void:
 	var blocker := get_node_or_null(blocker_path) as CollisionObject2D
 	if blocker != null:
 		# 清空碰撞层而不是 queue_free：清除是可逆的（调试、剧情倒带），
 		# 节点还在，Director 想再关回去也有东西可关。
 		blocker.collision_layer = 0 if value else 1
 		blocker.visible = not value
-	var visual := get_node_or_null(visual_path) as CanvasItem
-	if visual != null:
-		visual.visible = not value
 
 
 func _on_interact(_player: Node) -> void:
@@ -84,7 +101,11 @@ func _on_choice(index: int) -> void:
 func _do_clear() -> void:
 	if _is_cleared:
 		return
-	set_cleared(true)
+	# 先即时解除通行阻挡；美术则保留在场上播完清除表现才隐藏。
+	_is_cleared = true
+	_set_blocker_cleared(true)
+	_play_clear_sound()
+	_play_clear_visual()
 	if flag_to_set != &"":
 		StoryFlagManager.set_flag(flag_to_set)
 	cleared.emit()
@@ -92,3 +113,28 @@ func _do_clear() -> void:
 	# 让镜头先动起来，文字压在上面同时出现。
 	if not cleared_text.is_empty():
 		text_requested.emit(cleared_text)
+
+
+func _play_clear_sound() -> void:
+	var sound := get_node_or_null(clear_sound_path) as AudioStreamPlayer
+	if sound != null and sound.stream != null:
+		sound.play()
+
+
+func _play_clear_visual() -> void:
+	var visual := get_node_or_null(visual_path) as CanvasItem
+	if visual == null:
+		return
+	visual.visible = true
+	visual.modulate = Color.WHITE
+	var tween := create_tween()
+	var visual_node := visual as Node2D
+	if visual_node != null and clear_sway_duration > 0.0 and clear_sway_degrees > 0.0:
+		var sway: float = deg_to_rad(clear_sway_degrees)
+		var beat: float = clear_sway_duration / 3.0
+		tween.tween_property(visual_node, "rotation", sway, beat).set_trans(Tween.TRANS_SINE)
+		tween.tween_property(visual_node, "rotation", -sway, beat).set_trans(Tween.TRANS_SINE)
+		tween.tween_property(visual_node, "rotation", 0.0, beat).set_trans(Tween.TRANS_SINE)
+	if clear_fade_duration > 0.0:
+		tween.tween_property(visual, "modulate", Color(1.0, 1.0, 1.0, 0.0), clear_fade_duration)
+	tween.tween_callback(visual.hide)

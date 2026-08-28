@@ -17,6 +17,8 @@ const FLAG_GATE_EXAMINED := &"courtyard_01.gate_examined"
 const FLAG_WELL_EXAMINED := &"courtyard_01.well_examined"
 ## 西侧杂草已拔除 —— 拔完相机左边界才放开、才走得过去。
 const FLAG_WEEDS_CLEARED := &"courtyard_01.weeds_cleared"
+## 首次走到西侧窗边时触发过的偷听事件；选不偷听也不再重复询问。
+const FLAG_WINDOW_ENCOUNTERED := &"courtyard_01.window_encountered"
 ## 里院的门已经开锁。**Flag 名和小关卡的全部数值都归 `InnerGateLockConfig`**，
 ## 这里只引用，不另抄一份字符串。
 const FLAG_INNER_GATE_UNLOCKED := InnerGateLockConfig.FLAG_DOOR_UNLOCKED
@@ -36,9 +38,15 @@ const LOCK_CAMERA_SLIDE := &"west_gate_slide"
 @onready var _hairpin: Interactable = get_node_or_null(^"../Props/HairpinPickup")
 @onready var _exit: LevelExit = get_node_or_null(^"../Props/ToNextLevel")
 @onready var _weeds: PassageGate = get_node_or_null(^"../Props/WeedsGate") as PassageGate
+@onready var _window_trigger: Area2D = get_node_or_null(^"../Props/WindowListeningTrigger") as Area2D
+@onready var _window_sfx: AudioStreamPlayer = \
+	get_node_or_null(^"../Props/WindowListeningTrigger/ListeningSfx") as AudioStreamPlayer
 @onready var _camera: FollowCamera2D = get_node_or_null(^"../FollowCamera2D") as FollowCamera2D
 @onready var _trap: BacktrackTrap = get_node_or_null(^"../Props/InnerGateTrap") as BacktrackTrap
 @onready var _lock: RotaryLockUI = get_node_or_null(^"../RotaryLock") as RotaryLockUI
+## 锁没开之前挡在门后的实体墙。开锁后撤掉。
+@onready var _gate_blocker: CollisionObject2D = \
+	get_node_or_null(^"../Terrain/InnerGateBlocker") as CollisionObject2D
 
 
 func _connect_actors() -> void:
@@ -48,6 +56,8 @@ func _connect_actors() -> void:
 		_well.interacted.connect(_on_well_examined)
 	if _weeds != null:
 		_weeds.cleared.connect(_on_weeds_cleared)
+	if _window_trigger != null:
+		_window_trigger.body_entered.connect(_on_window_trigger_entered)
 	# 门锁着时按 E 的反馈就是「把锁翻出来」：门自己只回答能不能走，
 	# 「现在该弹锁界面」是编排，不是门的事。
 	if _exit != null:
@@ -60,6 +70,7 @@ func _connect_actors() -> void:
 
 func _restore_story_state() -> void:
 	_apply_west_passage()
+	_apply_window_encounter()
 	_apply_inner_gate_lock()
 
 
@@ -103,6 +114,38 @@ func _on_weeds_cleared() -> void:
 	_camera.slide_left_gate_open(WEST_GATE_SLIDE)
 
 
+func _on_window_trigger_entered(body: Node2D) -> void:
+	if body is not Player or StoryFlagManager.has_flag(FLAG_WINDOW_ENCOUNTERED):
+		return
+	# 先落 Flag 并关掉触发器，防止对话锁住玩家时 Area2D 重复触发。
+	StoryFlagManager.set_flag(FLAG_WINDOW_ENCOUNTERED)
+	_apply_window_encounter()
+	if _window_sfx != null and _window_sfx.stream != null:
+		_window_sfx.play()
+	_run_window_listening()
+
+
+func _run_window_listening() -> void:
+	var dialogue: Node = get_node_or_null(dialogue_box_path)
+	if dialogue == null or not dialogue.has_method("ask"):
+		return
+	var choice: int = int(await dialogue.call(
+		"ask",
+		"窗户外好像有什么声音，要偷听吗？",
+		PackedStringArray(["偷听", "算了"])))
+	if choice != 0:
+		return
+	# 共用对话框会在每一句显示期间持有自己的输入锁；按空格推进并在末句释放。
+	dialogue.call("show_text", "“小姐当真还在房中？”", null, "家丁")
+	await dialogue.closed
+	dialogue.call("show_text", "“小姐刚喝了药，睡得正沉，小声些。”", null, "丫鬟春香")
+
+
+func _apply_window_encounter() -> void:
+	if _window_trigger != null:
+		_window_trigger.monitoring = not StoryFlagManager.has_flag(FLAG_WINDOW_ENCOUNTERED)
+
+
 ## 门锁着时按 E：把三重旋锁翻出来。UI 自己有 `can_open()` 闸门，
 ## 连按或按住不放都只会有一个界面，也不会开完立刻被同一次输入关掉。
 func _on_locked_gate_tried(_player: Node) -> void:
@@ -120,12 +163,24 @@ func _on_trap_activated() -> void:
 
 
 ## 锁开了。**这里是唯一写「门已解锁」的地方**：锁界面只发 `solved`，
-## 门槛怎么放开、尾部的返回封锁怎么撤，都在这一条链上。
+## 门槛怎么放开、尾部的返回封锁怎么撤、什么时候进里院，都在这一条链上。
+##
+## 开锁 = 门开了 = 直接进里院。玩家**不会**走到锁右边那片地方去
+## （那里始终有实体阻挡，见 `_apply_inner_gate_lock()`），所以这里主动
+## 走一次场景切换——「怎么走」仍然是关卡的 `go_to_next_level()`。
 func _on_gate_lock_solved() -> void:
-	if StoryFlagManager.has_flag(FLAG_INNER_GATE_UNLOCKED):
+	if not StoryFlagManager.has_flag(FLAG_INNER_GATE_UNLOCKED):
+		StoryFlagManager.set_flag(FLAG_INNER_GATE_UNLOCKED)
+		_apply_inner_gate_lock()
+	_enter_inner_courtyard()
+
+
+## 去里院。幂等由 `CourtyardLevel.go_to_next_level()` 保证（`_leaving` 闸门），
+## 所以现场开锁和「已解锁时按 E」两条路都走这里，不会切两次。
+func _enter_inner_courtyard() -> void:
+	if _courtyard == null or _exit == null:
 		return
-	StoryFlagManager.set_flag(FLAG_INNER_GATE_UNLOCKED)
-	_apply_inner_gate_lock()
+	_courtyard.go_to_next_level(_exit.target_scene)
 
 
 # --- 恢复链路 -------------------------------------------------------------------
@@ -153,6 +208,12 @@ func _apply_inner_gate_lock() -> void:
 		_exit.required_flag = FLAG_INNER_GATE_UNLOCKED
 	if _lock != null:
 		_lock.set_solved(unlocked)
+	if _gate_blocker != null:
+		# **开锁之后也不撤**：锁右边那片地方玩家永远走不进去，通往里院的唯一
+		# 途径是和锁交互（开锁即跳转，见 `_enter_inner_courtyard()`）。
+		# 保留这行而不是把它删掉，是为了让「这面墙一直在」有一个明确的落点，
+		# 而不是靠场景里那个节点的默认值。
+		_gate_blocker.collision_layer = 1
 	if _trap != null and unlocked:
 		# 锁一开：硬边界撤掉、x=7800 的黑幕重置失效。旧触发器留在场景里
 		# 也不会再传送玩家，西边被封的那一段重新走得通。

@@ -140,6 +140,36 @@ func save_progress(scene_path: String, player_position: Vector2,
 	return save_game(current_slot, data)
 
 
+## 将当前进度写入自动轮换槽位。优先使用空槽；三个槽都已有有效存档时，
+## 覆盖 last_saved_at 最早的一格。成功后该格成为当前活动槽位，后续普通
+## 存档点仍会继续保存同一份进度。
+##
+## 没有活动存档的 F6 / 测试场景不允许凭空建档：它们没有可继承的章节、
+## 剧情 Flag 与记忆状态，所以安全返回 -1。
+func save_progress_to_oldest_slot(scene_path: String, player_position: Vector2,
+		use_level_spawn: bool = false) -> int:
+	if current_slot == -1 or current_save.is_empty():
+		return -1
+	var target_slot := _find_oldest_or_empty_slot()
+	if target_slot == -1:
+		return -1
+	var data := current_save.duplicate(true)
+	data["current_scene"] = scene_path
+	data["player_position_x"] = player_position.x
+	data["player_position_y"] = player_position.y
+	data["use_level_spawn"] = use_level_spawn
+	if not save_game(target_slot, data):
+		return -1
+	# save_game() 只会在目标原本就是活动槽位时更新缓存。这里切换到了新的
+	# 轮换槽位，所以从刚落盘的数据读回，确保时间戳和系统汇总状态完全一致。
+	var saved := _read_validated(target_slot)
+	if saved.is_empty():
+		return -1
+	current_slot = target_slot
+	current_save = saved.duplicate(true)
+	return target_slot
+
+
 func load_game(slot_id: int) -> Dictionary:
 	var data := _read_validated(slot_id)
 	if data.is_empty():
@@ -250,6 +280,22 @@ func _is_valid_slot(slot_id: int) -> bool:
 
 func _slot_path(slot_id: int) -> String:
 	return "user://save_slot_%d.json" % slot_id
+
+
+## 空槽（含损坏槽）优先，避免有空位时覆盖已有进度；否则取 ISO 时间字符串
+## 最小的有效槽。时间格式固定为 YYYY-MM-DD HH:MM:SS，可直接按字符串排序。
+func _find_oldest_or_empty_slot() -> int:
+	var oldest_slot := -1
+	var oldest_timestamp := ""
+	for slot_id in range(1, SLOT_COUNT + 1):
+		var summary := get_save_summary(slot_id)
+		if not bool(summary["exists"]) or not bool(summary["valid"]):
+			return slot_id
+		var timestamp := String(summary["last_saved_at"])
+		if oldest_slot == -1 or timestamp < oldest_timestamp:
+			oldest_slot = slot_id
+			oldest_timestamp = timestamp
+	return oldest_slot
 
 
 func _now_string() -> String:

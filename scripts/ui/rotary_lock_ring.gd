@@ -3,41 +3,41 @@ extends Node2D
 ## 三重旋锁里**一层**可旋转的圈。三层共用这一个脚本，只靠导出属性区分
 ## 命中形状和占位画法。
 ##
-## 职责边界：只管“这一层怎么转”——鼠标角度、22.5° 机械档位、半档回弹、
+## 职责边界：只管“这一层怎么转”——鼠标角度、45° 机械档位、半档回弹、
 ## 吸附插值，以及每跨一档发一次 `detent_stepped`。
 ## **不判断谜底、不播音效、不碰门和玩家**，那些归 `RotaryLockUI` 和 Director。
 ##
 ## 角度全部用「相对锁心的极角」计算，不看水平位移；相邻两次鼠标事件之间用
 ## `angle_difference()` 求增量，所以 179° → -179° 不会跳变。
 ##
+## **原点是顺时针方向的硬停点**（`InnerGateLockConfig.MAX_DETENT_INDEX`）：
+## 从原点只拨得动逆时针，省得玩家不知道该往哪边拨。已经拨出去之后可以顺时针
+## 拨回来，但回到原点就停住，不会越过去。
+##
 ## 换正式美术：给 `visual_texture` 挂一张图（图心 = 锁心），几何占位自动让位，
 ## **旋转逻辑一行不用改**。占位几何只在 `_draw()` 里。
 ##
 ## 命中区域用 `contains_point()` 对外提供，由 `RotaryLockUI` 按
-## 内 → 中 → 外的顺序询问，所以外层的四个花瓣不会盖住中层和内层。
+## 内 → 中 → 外的顺序询问。只有两个分界半径：最小圆半径和中层圆半径；
+## 最外层从中层外缘接管到它自己可调的较大外半径。
 
 signal detent_stepped(direction: int) ## +1 顺时针 / -1 逆时针，每跨一档一次
 signal settled ## 吸附 / 回弹结束
 
 ## 命中形状。占位画法也跟着它走。
 enum Shape {
-	DISC,   ## 实心圆（内层瓶身）
-	RING,   ## 圆环（中层）
-	PETALS, ## 四叶草：上下左右四个圆瓣（外层）
+	DISC, ## 实心圆（内层）
+	RING, ## 圆环（中层、外层）
 }
 
 @export var layer_id: StringName = &""
 @export var shape: Shape = Shape.RING
 
 @export_group("Geometry")
-## DISC：半径。RING：内半径。PETALS：中心禁区半径（小于它交给内层）。
-@export var inner_radius: float = 62.0
-## RING 的外半径；PETALS 时无意义。
-@export var outer_radius: float = 132.0
-## 花瓣圆心到锁心的距离（PETALS）。
-@export var petal_distance: float = 186.0
-## 花瓣半径（PETALS）。
-@export var petal_radius: float = 74.0
+## DISC：半径。RING：内半径。
+@export var inner_radius: float = 100.0
+## RING 的外半径。最外层可把它设得很大；中层外缘到此半径内都会命中最外层。
+@export var outer_radius: float = 200.0
 
 @export_group("Placeholder Art")
 ## 挂上正式图层素材后，下面的几何占位自动不画。图心必须是锁心。
@@ -46,7 +46,7 @@ enum Shape {
 @export var fill_color: Color = Color(0.16, 0.15, 0.18, 0.92)
 @export var line_width: float = 3.0
 
-## 已锁定的档位下标（可正可负，×22.5° = 角度）。
+## 已锁定的档位下标（可正可负，×45° = 角度）。
 var _detent_index: int = 0
 ## 拖拽中：上一次鼠标极角（度）。
 var _last_drag_angle: float = 0.0
@@ -93,13 +93,6 @@ func contains_point(point: Vector2) -> bool:
 			return r <= inner_radius
 		Shape.RING:
 			return r > inner_radius and r <= outer_radius
-		Shape.PETALS:
-			if r <= inner_radius:
-				return false
-			for dir in _petal_directions():
-				if local.distance_to(dir * petal_distance) <= petal_radius:
-					return true
-			return false
 	return false
 
 
@@ -124,6 +117,10 @@ func update_drag(point: Vector2) -> void:
 	# 鼠标拖出图形外也照常累计，直到松手（拖拽由 UI 层全局捕获）。
 	_drag_total += rad_to_deg(angle_difference(deg_to_rad(_last_drag_angle), deg_to_rad(angle)))
 	_last_drag_angle = angle
+	# 顺时针方向有硬停点（默认停在原点，见 `InnerGateLockConfig.MAX_DETENT_INDEX`）：
+	# 累计量直接卡住，所以拨到头就是拨不动，松手也不会多出一档。
+	# 卡的是累计量本身，因此从停点往回（逆时针）拨会立刻跟手，像真的碰到挡块。
+	_drag_total = minf(_drag_total, _clockwise_headroom())
 	_follow_drag()
 	_emit_completed_detents()
 
@@ -166,7 +163,9 @@ func cancel_drag() -> void:
 ## 静默摆终态（读档 / 调试 / 成功演出对齐用），不发信号、不计数。
 func set_detent_index(index: int, animate: bool = false) -> void:
 	cancel_drag()
-	_detent_index = index
+	# 硬停点对摆位也生效，免得调试或演出把它摆到停点之外。
+	_detent_index = mini(index, InnerGateLockConfig.MAX_DETENT_INDEX)
+	index = _detent_index
 	if animate:
 		_settle_to(index, InnerGateLockConfig.SUCCESS_SECONDS)
 	else:
@@ -184,6 +183,12 @@ func _angle_to(point: Vector2) -> float:
 	if parent_node != null:
 		center = parent_node.global_position
 	return rad_to_deg((point - center).angle())
+
+
+## 当前还能往顺时针方向转多少度（到硬停点为止）。逆时针不设限。
+func _clockwise_headroom() -> float:
+	return float(InnerGateLockConfig.MAX_DETENT_INDEX - _detent_index) \
+		* InnerGateLockConfig.DETENT_DEGREES
 
 
 func _follow_drag() -> void:
@@ -230,10 +235,6 @@ func _exit_tree() -> void:
 
 # --- 占位视觉（换正式素材时只动这一段）---------------------------------------
 
-func _petal_directions() -> Array[Vector2]:
-	return [Vector2.UP, Vector2.DOWN, Vector2.LEFT, Vector2.RIGHT]
-
-
 func _draw() -> void:
 	if visual_texture != null:
 		draw_texture(visual_texture, -visual_texture.get_size() * 0.5)
@@ -243,8 +244,6 @@ func _draw() -> void:
 			_draw_vase()
 		Shape.RING:
 			_draw_ring()
-		Shape.PETALS:
-			_draw_petals()
 	# 一道细刻线，让“这一层转到哪了”看得出来。
 	draw_line(Vector2.ZERO, Vector2.UP * _notch_length(), line_color, line_width)
 
@@ -255,8 +254,7 @@ func _notch_length() -> float:
 			return inner_radius * 0.8
 		Shape.RING:
 			return outer_radius
-		_:
-			return petal_distance + petal_radius
+	return outer_radius
 
 
 func _draw_ring() -> void:
@@ -269,13 +267,6 @@ func _draw_ring() -> void:
 	for i in steps:
 		var dir := Vector2.RIGHT.rotated(deg_to_rad(i * InnerGateLockConfig.DETENT_DEGREES))
 		draw_line(dir * inner_radius, dir * (inner_radius + 14.0), line_color, 1.5)
-
-
-func _draw_petals() -> void:
-	for dir in _petal_directions():
-		var c: Vector2 = dir * petal_distance
-		draw_circle(c, petal_radius, fill_color)
-		draw_arc(c, petal_radius, 0.0, TAU, 64, line_color, line_width, true)
 
 
 ## 内层瓷瓶：一个粗糙的对称瓶形轮廓，能看出“瓶”就够了。

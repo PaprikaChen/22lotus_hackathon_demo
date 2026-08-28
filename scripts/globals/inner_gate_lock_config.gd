@@ -36,10 +36,16 @@ const FADE_HOLD_SECONDS := 0.25
 
 # --- 旋锁手感 -----------------------------------------------------------------
 
-## 一个机械档位的角度（度）。360 / 22.5 = 16 档一圈。
-const DETENT_DEGREES := 22.5
+## 一个机械档位的角度（度）。360 / 45 = 8 档一圈。
+## 谜底的 steps 保持不变：每层仍须转相同格数，只是每格转得更远。
+const DETENT_DEGREES := 45.0
 ## 半档阈值（度）：松手时未达到它就回弹，达到就吸附到下一档。
 const HALF_DETENT_DEGREES := DETENT_DEGREES * 0.5
+## 档位上限：原点（0 档）不许再往**顺时针**方向扭，只能逆时针。
+## 这是给玩家的方向暗示——省得他不知道该往哪边拨。
+## 顺时针 = 角度增大 = 档位下标变大，所以上限设成 0 就等于"原点是硬停点"。
+## 逆时针没有下限（想拨几圈都行）。
+const MAX_DETENT_INDEX := 0
 ## 吸附到下一档的时长（短促，做"咔"的手感）。
 const SNAP_SECONDS := 0.08
 ## 回弹到上一档的时长。
@@ -57,17 +63,23 @@ const LAYER_INNER := &"inner"
 
 const DIRECTION_CW := 1   ## 顺时针（屏幕坐标下角度增大）
 const DIRECTION_CCW := -1 ## 逆时针
+const DIRECTION_ANY := 0  ## 不限方向，只数转动次数
 
-# --- 谜底（**临时占位答案**，等谜题设计定稿后只改这一处）--------------------
+# --- 谜底（改谜题只改这一处）--------------------------------------------------
 #
-# 判定依据是「逐档输入序列」：哪一层、什么方向、走了几档。
-# 每一步 steps 走满之后，下一次有效档位输入必须属于下一步的层；
-# 层错 / 方向错 / 超出步数 → 本轮失败并重置输入进度。
-# 未达半档回弹的拖动不产生档位输入，既不计数也不算错。
+# 瓶子（内层）×4 → 梅花（外层）×5 → 圆形机关（中层）×2。
+#
+# 判定依据是「逐档输入序列」：玩家按顺序拨了哪些层、每层拨了几档。
+# 连续拨同一层算**同一个阶段**；换到下一层之后又回头拨之前那层 = 顺序错。
+# 判定时机是玩家点「解锁」按钮，不是转到位就结算（见 rotary_lock_ui.gd）。
+# 未达半档回弹的拖动不产生档位输入，既不计数也不进序列。
+#
+# `direction` 留 `DIRECTION_ANY` = 不看方向，只数次数。要求某层必须朝某个
+# 方向拨时改成 `DIRECTION_CW` / `DIRECTION_CCW` 即可，判定逻辑已经支持。
 const SOLUTION: Array[Dictionary] = [
-	{"layer": LAYER_OUTER, "direction": DIRECTION_CW, "steps": 3},
-	{"layer": LAYER_MIDDLE, "direction": DIRECTION_CCW, "steps": 5},
-	{"layer": LAYER_INNER, "direction": DIRECTION_CW, "steps": 2},
+	{"layer": LAYER_INNER, "direction": DIRECTION_ANY, "steps": 4},
+	{"layer": LAYER_OUTER, "direction": DIRECTION_ANY, "steps": 5},
+	{"layer": LAYER_MIDDLE, "direction": DIRECTION_ANY, "steps": 2},
 ]
 
 # --- 剧情 Flag ----------------------------------------------------------------

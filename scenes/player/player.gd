@@ -41,7 +41,8 @@ enum State { IDLE, RUN, JUMP, FALL, DISABLED, INTERACT }
 ## 2.5D 关卡本来就没有跳跃，横版关卡里"纯步行探索"也是一种合法配置。
 @export var jump_enabled: bool = true
 
-@export var move_speed: float = 300.0
+## TEST: 原始横向速度为 300.0；当前临时提高为 5 倍，测试后恢复此值。
+@export var move_speed: float = 1500.0
 @export var acceleration: float = 2000.0
 @export var deceleration: float = 2600.0
 @export var jump_velocity: float = -650.0
@@ -51,7 +52,8 @@ enum State { IDLE, RUN, JUMP, FALL, DISABLED, INTERACT }
 @export_group("Depth (2.5D)")
 ## Depth speed along y. Deliberately far below move_speed so left/right stays
 ## the dominant direction and forward/back only adjusts where you stand.
-@export var depth_move_speed: float = 110.0
+## TEST: 原始纵深速度为 110.0；当前临时提高为 5 倍，测试后恢复此值。
+@export var depth_move_speed: float = 550.0
 @export var depth_acceleration: float = 1100.0
 @export var depth_deceleration: float = 1500.0
 
