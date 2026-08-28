@@ -1,19 +1,19 @@
-[gd_scene load_steps=16 format=3 uid="uid://dvlxsjofe6vxh"]
+[gd_scene load_steps=15 format=3 uid="uid://dvlxsjofe6vxh"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
-[ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="4"]
-[ext_resource type="Script" uid="uid://de4b8hy4gkxhc" path="res://scripts/components/memory_pickup.gd" id="5"]
 [ext_resource type="Script" uid="uid://t0yv2yxpm5o6" path="res://scripts/components/save_point.gd" id="6"]
-[ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="7"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_box_ui.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="10"]
 [ext_resource type="Script" uid="uid://coewhcvhnakhw" path="res://scenes/levels/courtyard_02_story_director.gd" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="12"]
+[ext_resource type="Texture2D" uid="uid://cwo8bg1v233so" path="res://assets/art/backgrounds/testbg2.jpg" id="13"]
+[ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="14"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(3456, 200)
+size = Vector2(6916, 200)
 
 [sub_resource type="RectangleShape2D" id="EdgeWallShape"]
 size = Vector2(64, 800)
@@ -21,14 +21,10 @@ size = Vector2(64, 800)
 [sub_resource type="CircleShape2D" id="InteractShape"]
 radius = 56.0
 
-[sub_resource type="RectangleShape2D" id="ExitShape"]
-size = Vector2(96, 200)
-
 [node name="Courtyard02" type="Node2D"]
 script = ExtResource("1")
 prompt_label_path = NodePath("UI/PromptLabel")
 dialogue_box_path = NodePath("DialogueBox")
-level_exit_path = NodePath("Props/BackToFirst")
 level_id = &"courtyard_02"
 player_can_jump = false
 player_path = NodePath("Player")
@@ -36,45 +32,19 @@ spawn_point_path = NodePath("SpawnPoint")
 
 [node name="Background" type="Node2D" parent="."]
 
-[node name="Sky" type="Polygon2D" parent="Background"]
-color = Color(0.11, 0.12, 0.19, 1)
-polygon = PackedVector2Array(0, 0, 3456, 0, 3456, 300, 0, 300)
-
-[node name="Wall" type="Polygon2D" parent="Background"]
-color = Color(0.22, 0.2, 0.25, 1)
-polygon = PackedVector2Array(0, 300, 3456, 300, 3456, 560, 0, 560)
-
-[node name="GroundBand" type="Polygon2D" parent="Background"]
-color = Color(0.16, 0.15, 0.17, 1)
-polygon = PackedVector2Array(0, 560, 3456, 560, 3456, 648, 0, 648)
-
-[node name="Landmarks" type="Node2D" parent="Background"]
-
-[node name="Pillar00" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.31, 0.28, 0.32, 1)
-polygon = PackedVector2Array(332, 440, 368, 440, 368, 560, 332, 560)
-
-[node name="Pillar01" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.31, 0.28, 0.32, 1)
-polygon = PackedVector2Array(1032, 380, 1068, 380, 1068, 560, 1032, 560)
-
-[node name="Pillar02" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.31, 0.28, 0.32, 1)
-polygon = PackedVector2Array(1732, 320, 1768, 320, 1768, 560, 1732, 560)
-
-[node name="Pillar03" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.31, 0.28, 0.32, 1)
-polygon = PackedVector2Array(2432, 440, 2468, 440, 2468, 560, 2432, 560)
-
-[node name="Pillar04" type="Polygon2D" parent="Background/Landmarks"]
-color = Color(0.31, 0.28, 0.32, 1)
-polygon = PackedVector2Array(3132, 380, 3168, 380, 3168, 560, 3132, 560)
+[node name="Backdrop" type="Sprite2D" parent="Background"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("13")
+centered = false
+script = ExtResource("14")
 
 [node name="Ground" type="StaticBody2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-position = Vector2(1728, 660)
+position = Vector2(3426, 660)
 shape = SubResource("GroundShape")
+
+[node name="Terrain" type="Node2D" parent="."]
 
 [node name="Bounds" type="Node2D" parent="."]
 
@@ -85,7 +55,7 @@ position = Vector2(-32, 360)
 shape = SubResource("EdgeWallShape")
 
 [node name="WallRight" type="StaticBody2D" parent="Bounds"]
-position = Vector2(3488, 360)
+position = Vector2(6884, 360)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/WallRight"]
 shape = SubResource("EdgeWallShape")
@@ -95,44 +65,8 @@ position = Vector2(200, 560)
 
 [node name="Props" type="Node2D" parent="."]
 
-[node name="ScreenSpot" type="Area2D" parent="Props"]
-position = Vector2(900, 560)
-script = ExtResource("4")
-display_text = "（占位）屏风上绣着一只山鸟。
-（占位）针脚很密，绣了很久。"
-prompt_text = "查看屏风"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/ScreenSpot"]
-position = Vector2(0, -28)
-shape = SubResource("InteractShape")
-
-[node name="Visual" type="Polygon2D" parent="Props/ScreenSpot"]
-color = Color(0.5, 0.38, 0.42, 1)
-polygon = PackedVector2Array(-60, -170, 60, -170, 60, 0, -60, 0)
-
-[node name="LanternPickup" type="Area2D" parent="Props"]
-position = Vector2(2200, 560)
-script = ExtResource("5")
-memory_id = &"extinguished_water_lantern"
-prompt_text = "拾起 熄灭的水灯"
-one_shot = true
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/LanternPickup"]
-position = Vector2(0, -24)
-shape = SubResource("InteractShape")
-
-[node name="Visual" type="Node2D" parent="Props/LanternPickup"]
-
-[node name="Outline" type="Polygon2D" parent="Props/LanternPickup/Visual"]
-color = Color(0.1, 0.1, 0.12, 1)
-polygon = PackedVector2Array(-13, -49, 13, -49, 13, 3, -13, 3)
-
-[node name="Fill" type="Polygon2D" parent="Props/LanternPickup/Visual"]
-color = Color(0.6, 0.82, 0.86, 1)
-polygon = PackedVector2Array(-10, -46, 10, -46, 10, 0, -10, 0)
-
 [node name="SavePoint" type="Area2D" parent="Props"]
-position = Vector2(2800, 560)
+position = Vector2(3400, 560)
 script = ExtResource("6")
 prompt_text = "在此歇息（存档）"
 
@@ -141,22 +75,9 @@ position = Vector2(0, -30)
 shape = SubResource("InteractShape")
 
 [node name="Visual" type="Polygon2D" parent="Props/SavePoint"]
+visible = false
 color = Color(0.45, 0.6, 0.95, 1)
 polygon = PackedVector2Array(-22, -70, 22, -70, 22, 0, -22, 0)
-
-[node name="BackToFirst" type="Area2D" parent="Props"]
-position = Vector2(120, 560)
-script = ExtResource("7")
-target_scene = "res://scenes/levels/courtyard_01.tscn"
-prompt_text = "回到前院"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/BackToFirst"]
-position = Vector2(0, -100)
-shape = SubResource("ExitShape")
-
-[node name="Visual" type="Polygon2D" parent="Props/BackToFirst"]
-color = Color(0.3, 0.5, 0.34, 1)
-polygon = PackedVector2Array(-40, -190, 40, -190, 40, 0, -40, 0)
 
 [node name="NPCs" type="Node2D" parent="."]
 
@@ -168,7 +89,9 @@ move_speed = 220.0
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")
 target_path = NodePath("../Player")
-world_bounds = Rect2(0, 0, 3456, 648)
+bounds_source_path = NodePath("../Background/Backdrop")
+
+[node name="FrameBars" parent="." instance=ExtResource("12")]
 
 [node name="DialogueBox" parent="." instance=ExtResource("8")]
 player_path = NodePath("../Player")
@@ -185,9 +108,9 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = -64.0
+offset_top = -244.0
 offset_right = 700.0
-offset_bottom = -32.0
+offset_bottom = -212.0
 grow_vertical = 0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6

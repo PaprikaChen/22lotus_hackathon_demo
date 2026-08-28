@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://cqd0o6acg8kw0"]
+[gd_scene load_steps=24 format=3 uid="uid://cqd0o6acg8kw0"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -15,6 +15,10 @@
 [ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="13"]
 [ext_resource type="Script" uid="uid://bonnbpommxu3e" path="res://scripts/components/arch_bridge.gd" id="14"]
 [ext_resource type="Script" uid="uid://cyjfsqwtlvsvp" path="res://scripts/components/passage_gate.gd" id="15"]
+[ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://scenes/ui/rotary_lock.tscn" id="18"]
+[ext_resource type="Script" uid="uid://cmt7i5cs3otw0" path="res://scripts/components/backtrack_trap.gd" id="19"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(9884, 200)
@@ -66,6 +70,14 @@ segments = 18
 position = Vector2(1318, 360)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/WeedBlocker"]
+shape = SubResource("EdgeWallShape")
+
+[node name="TrapWall" type="StaticBody2D" parent="Terrain"]
+visible = false
+position = Vector2(7718, 360)
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/TrapWall"]
 shape = SubResource("EdgeWallShape")
 
 [node name="Bounds" type="Node2D" parent="."]
@@ -179,10 +191,12 @@ color = Color(0.45, 0.6, 0.95, 1)
 polygon = PackedVector2Array(-22, -70, 22, -70, 22, 0, -22, 0)
 
 [node name="ToNextLevel" type="Area2D" parent="Props"]
-position = Vector2(9050, 560)
+position = Vector2(9000, 560)
 script = ExtResource("7")
 target_scene = "res://scenes/levels/courtyard_02.tscn"
-prompt_text = "往里走"
+prompt_text = "推开里院的门"
+required_flag = &"courtyard_01.inner_gate_unlocked"
+blocked_prompt_text = "拨弄门上的三重旋锁"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/ToNextLevel"]
 position = Vector2(0, -100)
@@ -192,6 +206,15 @@ shape = SubResource("ExitShape")
 visible = false
 color = Color(0.3, 0.5, 0.34, 1)
 polygon = PackedVector2Array(-40, -190, 40, -190, 40, 0, -40, 0)
+
+[node name="InnerGateTrap" type="Node2D" parent="Props"]
+position = Vector2(7900, 560)
+script = ExtResource("19")
+player_path = NodePath("../../Player")
+wall_path = NodePath("../../Terrain/TrapWall")
+fade_path = NodePath("../../ScreenFade")
+reset_text = "（占位）她明明一直往西走。
+（占位）再抬头，还是这道门前。"
 
 [node name="NPCs" type="Node2D" parent="."]
 
@@ -205,6 +228,13 @@ script = ExtResource("3")
 target_path = NodePath("../Player")
 bounds_source_path = NodePath("../Background/Backdrop")
 left_gate_x = 1350
+
+[node name="FrameBars" parent="." instance=ExtResource("16")]
+
+[node name="RotaryLock" parent="." instance=ExtResource("18")]
+player_path = NodePath("../Player")
+
+[node name="ScreenFade" parent="." instance=ExtResource("17")]
 
 [node name="DialogueBox" parent="." instance=ExtResource("8")]
 player_path = NodePath("../Player")
@@ -221,9 +251,9 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 24.0
-offset_top = -64.0
+offset_top = -244.0
 offset_right = 700.0
-offset_bottom = -32.0
+offset_bottom = -212.0
 grow_vertical = 0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 6

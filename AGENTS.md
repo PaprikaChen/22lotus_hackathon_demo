@@ -86,6 +86,40 @@
   `level_exit.gd`（去下一关）、`follow_camera.gd`（横版跟随相机）。
   门槛（`required_flag` / `required_memory`，两个都填就都要满足）在
   `Interactable` **基类**里，不要在子类里重复实现。
+- courtyard_01 尾部小关卡（2026-08-28）：走到场景尾部后回不了头，门上一把
+  三重旋锁挡住去 courtyard_02 的路。**全部数值集中在
+  `scripts/globals/inner_gate_lock_config.gd`（InnerGateLockConfig）**——
+  触发/重置/硬边界/重生 x、22.5° 档位与半档阈值、各段时长、谜底序列、
+  解锁 Flag 名，别在别处再抄一份。组成：
+  - `scripts/components/backtrack_trap.gd`（BacktrackTrap）：x>=7900 一次性
+    激活、x<=7800 黑幕重置回 x=8300、x=7750 硬边界墙（开关 StaticBody2D 的
+    碰撞层，**不每帧改玩家坐标**）。输入锁来源 `backtrack_reset`。
+    激活时 Director 给相机挂一道**走过就落闸**的左闸门
+    （`FollowCamera2D.arm_left_gate_latch(7700)`）：等画面最左侧自己走到 7700
+    才落闸，边界正好压在当前画面左缘上，画面不会跳；之后西边的视野也让不回来。
+    **它和西侧杂草共用 FollowCamera2D 的同一层闸门**，所以解锁时不能
+    `release_left_gate()`，要撤掉待落闸门 + 重跑 `_apply_west_passage()`
+    把边界交还给杂草的规则。
+    被送回来的那句字幕只出第一次（`reset_text_once`），之后直接黑幕重生；
+    首次走进尾部区域不出字幕。
+    Director 解锁后调 `disarm()`，旧触发器留在场景里也不再生效。
+    门（`Props/ToNextLevel`）的交互点在 x=9000。
+  - `scripts/ui/screen_fade.gd` + `scenes/ui/screen_fade.tscn`（ScreenFade，
+    layer 95）：**项目唯一可复用的全屏淡入淡出**，`fade_out()` / `fade_in()`
+    均可 await，重入自动掐掉上一个 Tween。只管画面黑白，不锁玩家不切场景。
+  - `scripts/ui/rotary_lock_ui.gd`（RotaryLockUI）+ `rotary_lock_ring.gd`
+    （RotaryLockRing）+ `scenes/ui/rotary_lock.tscn`（layer 70）：三层共用
+    同一个 ring 脚本（四叶草 / 圆环 / 瓷瓶三种占位画法），命中按
+    内→中→外询问 `contains_point()`，外层花瓣不遮挡里层；判定依据是
+    **逐档输入序列**（层 / 方向 / 档数），不是最终角度。换正式美术只需给
+    ring 的 `visual_texture` 挂图，旋转逻辑不动；音效是两个独立
+    AudioStreamPlayer（`detent_sfx` / `unlock_sfx`，**当前无素材，安全静默**）。
+  - 门本身仍是 `LevelExit`：`required_flag` = `courtyard_01.inner_gate_unlocked`，
+    锁着时按 E 走基类的 blocked 路径 → Director 接 `interaction_blocked`
+    弹锁界面；`solved` → Director 写 Flag（**唯一写它的地方**）→
+    `_apply_inner_gate_lock()` 摆终态。读档恢复走同一条路。
+  - 回归：`tests/test_courtyard_01.gd`（陷阱 / 档位 / 判定 / 门槛，headless
+    可跑）；`tests/test_rotary_lock_view.tscn` 是占位视觉的肉眼检查房。
 - 正式关卡：`courtyard_01` / `courtyard_02`（共用关卡脚本
   `scenes/levels/courtyard_level.gd`，各有自己的 StoryDirector）。
   新游戏入口 = `SaveManager.NEW_GAME_SCENE_PATH` → courtyard_01，
@@ -383,6 +417,9 @@ components / props）、`scripts/`（autoload / components / globals）、
 | 新的画廊 CG | `resources/cg/` 加一个 `CGEntry` `.tres`（自动注册）；在 Director 里 `GalleryManager.unlock_cg(id)` |
 | 新关卡（横版连续滚动） | 复制 `courtyard_01.tscn`，换背景 / Props / Director；相机用 `FollowCamera2D`，出口用 `LevelExit` |
 | 关卡禁跳跃 | 关卡根节点设 `player_can_jump = false`（LevelBase 会下发给玩家），**不要**新增 MovementMode |
+| 全屏淡入淡出 | `ScreenFade`（`scenes/ui/screen_fade.tscn`），`await fade_out()` / `await fade_in()`；不要再内联 Tween |
+| 单向通路 / 回不了头的区段 | `BacktrackTrap` + 一面 StaticBody2D 硬边界；数值进配置脚本，解锁时 `disarm()` |
+| 新的机关谜题 UI | 参照 `RotaryLockUI`：自己 pause + 玩家输入锁，只发 `solved`，Flag 和后果交给 Director |
 | 新的门 | `StoryDoor`（`scripts/components/`）：`required_flag` 和 / 或 `required_memory`，两者叠加 |
 | 新剧情节点 | 写进该关的 `StoryDirector`：一个 `_on_<事件>()` + 一个 `_apply_<节点>()`，后者进 `_restore_story_state()` |
 | 新演出 / 幻觉 | 继承 `Cutscene`，只写 `_perform()`，演完调 `finish()`；剧情后果交给 Director |

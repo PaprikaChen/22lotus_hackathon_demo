@@ -43,6 +43,8 @@ signal left_gate_opened
 var _target: Node2D = null
 ## 背景算出来的真实左边界，闸门放开后要回到这个值。
 var _bounds_limit_left: int = 0
+## 待落的左闸门位置（见 `arm_left_gate_latch()`）。-1 = 没有。
+var _left_gate_latch_x: int = -1
 
 
 func _ready() -> void:
@@ -60,6 +62,7 @@ func _process(_delta: float) -> void:
 	# 只管把相机放到人身上；越界由 limit_* 负责，这里不 clamp。
 	position.x = _target.global_position.x
 	position.y = _target.global_position.y if follow_y else fixed_y
+	_update_left_gate_latch()
 
 
 # --- 边界 ----------------------------------------------------------------------
@@ -106,6 +109,38 @@ func is_left_gate_closed() -> bool:
 	return left_gate_x >= 0
 
 
+# --- 左侧闸门的「走过就落闸」模式 -----------------------------------------------
+
+## 挂一道待落的左闸门：**等画面最左侧自己走到 x 再落闸**，而不是人一到某个
+## 坐标就啪一下把边界收过来。这样画面不会跳——落闸的那一瞬间边界正好压在
+## 当前画面的左缘上，观感是"走过去之后就再也让不回来了"。
+##
+## 传 -1 撤掉待落闸门。幂等；已经落下的闸门不受影响（撤的是"待落"这件事）。
+func arm_left_gate_latch(x: int) -> void:
+	_left_gate_latch_x = x
+
+
+func is_left_gate_latch_armed() -> bool:
+	return _left_gate_latch_x >= 0
+
+
+## 画面最左侧的世界坐标。注意读的是**画面中心**（`get_screen_center_position()`），
+## 不是节点位置——limit 生效时两者不同。
+func get_screen_left_edge() -> float:
+	return get_screen_center_position().x - get_viewport_rect().size.x / zoom.x * 0.5
+
+
+func _update_left_gate_latch() -> void:
+	if _left_gate_latch_x < 0:
+		return
+	# 只有当现有闸门比待落位置更靠西（= 视野更宽）时才需要落闸，
+	# 否则画面已经被更靠东的闸门管着了。
+	if left_gate_x >= _left_gate_latch_x:
+		return
+	if get_screen_left_edge() >= float(_left_gate_latch_x):
+		set_left_gate(_left_gate_latch_x)
+
+
 func _resolve_bounds() -> Rect2:
 	if world_bounds.size.x > 0.0 and world_bounds.size.y > 0.0:
 		return world_bounds
@@ -126,10 +161,17 @@ func _apply_bounds(bounds: Rect2) -> void:
 		return
 	_bounds_limit_left = int(bounds.position.x)
 	limit_left = _bounds_limit_left
-	limit_top = int(bounds.position.y)
 	limit_right = int(bounds.position.x + bounds.size.x)
-	limit_bottom = int(bounds.position.y + bounds.size.y)
 	var view := get_viewport_rect().size / zoom
+	# 纵向 limit 只在世界比画面高的时候才有意义。画布上下多出影院边框之后
+	# 画面（888）比世界（648）高，这时钳制会把相机往里推，游戏画面就不再
+	# 居中、边框区域反而被塞进世界内容。所以这种情况直接放开纵向。
+	if bounds.size.y > view.y:
+		limit_top = int(bounds.position.y)
+		limit_bottom = int(bounds.position.y + bounds.size.y)
+	else:
+		limit_top = -10000000
+		limit_bottom = 10000000
 	if bounds.size.x < view.x:
 		push_warning(
 			"FollowCamera2D: 场景宽 %d < 视口宽 %d，左右 limit 会冲突导致画面抖动。"
