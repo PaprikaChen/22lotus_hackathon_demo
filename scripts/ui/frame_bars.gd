@@ -4,7 +4,7 @@ extends CanvasLayer
 ## 影院边框：把**新增出来的**上下两块画布填成纯黑。
 ##
 ## 它不是盖在游戏画面上的遮罩。真正的改动在 project.godot：设计分辨率的高度
-## 从 648 提到 888，也就是画布上下各多出 120px 从前不存在的空间。原来那 648px
+## 从 648 提到 828，也就是画布上下各多出 90px 从前不存在的空间。原来那 648px
 ## 的游戏画面一寸没动，仍然按 1:1 显示在正中间；相机的可视世界高度也还是
 ## 648（`Backdrop.world_height`），多出来的部分本来就没有任何世界内容。
 ##
@@ -12,7 +12,7 @@ extends CanvasLayer
 ## 立绘一个明确的摆放范围。`_assert_no_overlap()` 保证它永远不会伸进游戏区。
 ##
 ## 想知道边框多高、字幕能摆在哪，问 `get_bar_height()` / `get_bottom_band_rect()`，
-## 别各处抄 120。
+## 别各处抄 90。
 
 ## 原游戏画面的高度。**不要**改这个来调边框——它是"多出来之前"的高度，
 ## 改边框厚度请改 project.godot 里的 viewport_height。
@@ -66,7 +66,7 @@ func _set_bar_color(v: Color) -> void:
 func _canvas_size() -> Vector2:
 	return Vector2(
 		float(ProjectSettings.get_setting("display/window/size/viewport_width", 1152)),
-		float(ProjectSettings.get_setting("display/window/size/viewport_height", 888)))
+		float(ProjectSettings.get_setting("display/window/size/viewport_height", 828)))
 
 
 func _rebuild() -> void:

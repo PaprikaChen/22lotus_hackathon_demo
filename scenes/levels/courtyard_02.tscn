@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://dvlxsjofe6vxh"]
+[gd_scene load_steps=18 format=3 uid="uid://dvlxsjofe6vxh"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -9,11 +9,14 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/memory_toast.tscn" id="10"]
 [ext_resource type="Script" uid="uid://coewhcvhnakhw" path="res://scenes/levels/courtyard_02_story_director.gd" id="11"]
 [ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="12"]
-[ext_resource type="Texture2D" uid="uid://cwo8bg1v233so" path="res://assets/art/backgrounds/testbg2.jpg" id="13"]
+[ext_resource type="Texture2D" uid="uid://lvuqs3ta0upi" path="res://assets/art/backgrounds/back/courtyard_02_back.png" id="13"]
 [ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="14"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interaction_prompt.tscn" id="15"]
+[ext_resource type="Texture2D" uid="uid://by1oll8nbe2sa" path="res://assets/art/backgrounds/middle/courtyard_02_middle.png" id="16"]
+[ext_resource type="Texture2D" uid="uid://cenwdler84o2c" path="res://assets/art/backgrounds/front/courtyard_02_front.png" id="17"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
-size = Vector2(6916, 200)
+size = Vector2(5052, 200)
 
 [sub_resource type="RectangleShape2D" id="EdgeWallShape"]
 size = Vector2(64, 800)
@@ -23,7 +26,6 @@ radius = 56.0
 
 [node name="Courtyard02" type="Node2D"]
 script = ExtResource("1")
-prompt_label_path = NodePath("UI/PromptLabel")
 dialogue_box_path = NodePath("DialogueBox")
 level_id = &"courtyard_02"
 player_can_jump = false
@@ -32,16 +34,37 @@ spawn_point_path = NodePath("SpawnPoint")
 
 [node name="Background" type="Node2D" parent="."]
 
-[node name="Backdrop" type="Sprite2D" parent="Background"]
+[node name="BackParallax" type="Parallax2D" parent="Background"]
+z_index = -2
+scroll_scale = Vector2(0.995, 1)
+
+[node name="Backdrop" type="Sprite2D" parent="Background/BackParallax"]
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("13")
+centered = false
+script = ExtResource("14")
+
+[node name="Backdrop" type="Sprite2D" parent="Background"]
+z_index = -1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("16")
+centered = false
+script = ExtResource("14")
+
+[node name="FrontParallax" type="Parallax2D" parent="Background"]
+z_index = 1
+scroll_scale = Vector2(1.005, 1)
+
+[node name="Backdrop" type="Sprite2D" parent="Background/FrontParallax"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("17")
 centered = false
 script = ExtResource("14")
 
 [node name="Ground" type="StaticBody2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
-position = Vector2(3426, 660)
+position = Vector2(2526, 660)
 shape = SubResource("GroundShape")
 
 [node name="Terrain" type="Node2D" parent="."]
@@ -55,7 +78,7 @@ position = Vector2(-32, 360)
 shape = SubResource("EdgeWallShape")
 
 [node name="WallRight" type="StaticBody2D" parent="Bounds"]
-position = Vector2(6884, 360)
+position = Vector2(5084, 360)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/WallRight"]
 shape = SubResource("EdgeWallShape")
@@ -69,6 +92,9 @@ position = Vector2(200, 560)
 position = Vector2(3400, 560)
 script = ExtResource("6")
 prompt_text = "在此歇息（存档）"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/SavePoint"]
+position = Vector2(0, -100)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/SavePoint"]
 position = Vector2(0, -30)
@@ -103,17 +129,14 @@ player_path = NodePath("../Player")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
-[node name="PromptLabel" type="Label" parent="UI"]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = -244.0
-offset_right = 700.0
-offset_bottom = -212.0
-grow_vertical = 0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
+[node name="InteractionPrompt" parent="UI" instance=ExtResource("15")]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
+player_path = NodePath("../../Player")
 
 [node name="StoryDirector" type="Node" parent="."]
 script = ExtResource("11")

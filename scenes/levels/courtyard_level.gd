@@ -5,7 +5,7 @@ extends LevelBase
 ## **只负责关卡侧机制**：
 ##   · 相机由 FollowCamera2D 自己管，这里不碰；
 ##   · 把各个 `text_requested` 接到共用 DialogueBox；
-##   · 把 `prompt_changed` 接到屏幕上的提示 Label；
+##   · 交互提示由场景里的 InteractionPrompt 自己监听玩家检测器；
 ##   · 「去下一关」这一次场景切换怎么做；
 ##   · 自动存档怎么写。
 ##
@@ -17,24 +17,16 @@ extends LevelBase
 
 signal level_left(target_scene: String)
 
-@export var prompt_label_path: NodePath
 @export var dialogue_box_path: NodePath
 @export var level_exit_path: NodePath
 
-var _prompt_label: Label = null
 var _dialogue: CanvasLayer = null
-var _detector: InteractionDetector = null
 var _leaving: bool = false
 
 
 func _ready() -> void:
 	super._ready()
-	_prompt_label = get_node_or_null(prompt_label_path) as Label
 	_dialogue = get_node_or_null(dialogue_box_path) as CanvasLayer
-	if _player != null:
-		_detector = _player.get_node_or_null("InteractionDetector") as InteractionDetector
-	if _detector != null:
-		_detector.prompt_changed.connect(_on_prompt_changed)
 	for prop in _collect_props_with_signal(self, &"text_requested"):
 		prop.text_requested.connect(_show_text)
 	for prop in _collect_props_with_signal(self, &"choice_requested"):
@@ -45,11 +37,6 @@ func _ready() -> void:
 
 
 # --- UI 布线 -------------------------------------------------------------------
-
-func _on_prompt_changed(text: String) -> void:
-	if _prompt_label != null:
-		_prompt_label.text = "[E] %s" % text if not text.is_empty() else ""
-
 
 func _show_text(text: String) -> void:
 	# 所有调查 / 对话文字统一走底部对话框，禁止各处自画浮动文字。

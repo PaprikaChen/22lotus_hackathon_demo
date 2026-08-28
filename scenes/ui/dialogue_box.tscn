@@ -1,10 +1,13 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/dialogue_box.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/art/sprites/ui/对话框.png" id="2"]
+[ext_resource type="Texture2D" path="res://assets/art/sprites/liniang/立绘.png" id="3"]
 
 [node name="DialogueBox" type="CanvasLayer"]
 layer = 60
 script = ExtResource("1")
+liniang_portrait = ExtResource("3")
 
 [node name="Root" type="Control" parent="."]
 anchors_preset = 15
@@ -27,6 +30,19 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0.05, 0.04, 0.09, 0)
+mouse_filter = 2
+
+[node name="SpeechFrame" type="TextureRect" parent="Root/Panel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2")
+expand_mode = 1
+stretch_mode = 5
 mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="Root/Panel"]
@@ -55,36 +71,39 @@ mouse_filter = 2
 [node name="TextColumn" type="VBoxContainer" parent="Root/Panel/Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 mouse_filter = 2
+alignment = 1
 
 [node name="SpeakerLabel" type="Label" parent="Root/Panel/Margin/HBox/TextColumn"]
 visible = false
 layout_mode = 2
 horizontal_alignment = 1
+vertical_alignment = 1
 theme_override_font_sizes/font_size = 18
 
 [node name="TextLabel" type="Label" parent="Root/Panel/Margin/HBox/TextColumn"]
 layout_mode = 2
-size_flags_vertical = 3
 horizontal_alignment = 1
+vertical_alignment = 1
 theme_override_font_sizes/font_size = 20
 autowrap_mode = 3
 
-[node name="ChoiceList" type="VBoxContainer" parent="Root/Panel/Margin/HBox/TextColumn"]
+
+[node name="ChoiceList" type="VBoxContainer" parent="Root/Panel/Margin/HBox"]
 visible = false
 layout_mode = 2
+custom_minimum_size = Vector2(240, 0)
+size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 4
 
 [node name="ContinueHint" type="Label" parent="Root/Panel"]
-anchor_left = 1.0
 anchor_top = 1.0
-anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -140.0
+offset_left = 16.0
 offset_top = -34.0
-offset_right = -16.0
+offset_right = 220.0
 offset_bottom = -10.0
-horizontal_alignment = 2
 theme_override_font_sizes/font_size = 14
 mouse_filter = 2

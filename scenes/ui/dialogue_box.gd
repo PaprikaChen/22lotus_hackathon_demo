@@ -6,8 +6,9 @@ extends CanvasLayer
 ## While the box is open the player is held with the source-based input lock
 ## ("dialogue_box", via begin_interaction so the state shows INTERACT) — so
 ## Space advances text instead of jumping, and world interaction pauses.
-## Optional portrait (left) and speaker name for dialogue use. Runs while the
-## tree is paused so future paused dialogue flows keep working.
+## Any named speaker uses the illustrated dialogue frame. Only Liniang gets a
+## right-side portrait for now; narration keeps the compact subtitle layout.
+## Runs while the tree is paused so future paused dialogue flows keep working.
 
 signal line_shown(line: String)
 signal closed
@@ -15,6 +16,10 @@ signal closed
 signal choice_selected(index: int)
 
 const LOCK_SOURCE := &"dialogue_box"
+## 旁白字幕面板在下边框里留的上下内缩。
+const SUBTITLE_BAND_INSET := 10.0
+## 场景里没有 FrameBars 时旁白字幕面板的高度。
+const SUBTITLE_BAND_FALLBACK := 148.0
 ## 人名使用低饱和的莫兰迪色，正文保持统一，避免颜色抢过台词本身。
 const SPEAKER_COLOR_DEFAULT := Color(0.78, 0.74, 0.82, 1.0)
 const SPEAKER_COLOR_LINIANG := Color(0.56, 0.43, 0.65, 1.0)
@@ -24,13 +29,23 @@ const SPEAKER_COLOR_MAID := Color(0.67, 0.49, 0.57, 1.0)
 
 ## Player to lock while the box is open (optional).
 @export var player_path: NodePath
+## 目前唯一接入的说话角色立绘；场景资源负责指定图片，脚本不依赖素材路径。
+@export var liniang_portrait: Texture2D
+## 同关卡里的 FrameBars（默认取同级节点）。只用来问下边框多高——
+## 旁白字幕要摆在那条黑边里。找不到就走 SUBTITLE_BAND_FALLBACK。
+@export var frame_bars_path: NodePath = ^"../FrameBars"
 
 @onready var _panel: Control = $Root/Panel
+@onready var _speech_frame: TextureRect = $Root/Panel/SpeechFrame
+@onready var _margin: MarginContainer = $Root/Panel/Margin
+@onready var _content_row: HBoxContainer = $Root/Panel/Margin/HBox
 @onready var _portrait: TextureRect = $Root/Panel/Margin/HBox/Portrait
 @onready var _speaker_label: Label = $Root/Panel/Margin/HBox/TextColumn/SpeakerLabel
 @onready var _text_label: Label = $Root/Panel/Margin/HBox/TextColumn/TextLabel
 @onready var _continue_hint: Label = $Root/Panel/ContinueHint
-@onready var _choice_list: VBoxContainer = $Root/Panel/Margin/HBox/TextColumn/ChoiceList
+## 选项自成一列（挂在 HBox 下，不在正文列里）：放在正文侧边才有横向空间把
+## 选项文字显示完整——塞在正文下面时那点高度会把选项挤掉。
+@onready var _choice_list: VBoxContainer = $Root/Panel/Margin/HBox/ChoiceList
 
 var _lines: PackedStringArray = []
 var _line_index: int = 0
@@ -40,6 +55,7 @@ var _player: Node = null
 var _options: PackedStringArray = []
 var _choice_index: int = 0
 var _choosing: bool = false
+var _is_spoken_dialogue: bool = false
 
 # Rising-edge tracking (project convention; see AGENTS.md).
 var _accept_held: bool = false
@@ -84,10 +100,10 @@ func _process(_delta: float) -> void:
 
 # --- Public API -----------------------------------------------------------------
 
-## Splits `text` into non-empty lines and shows the first one. `portrait`
-## and `speaker` are optional (dialogue use). Calling again while open
-## replaces the content.
-func show_text(text: String, portrait: Texture2D = null, speaker: String = "") -> void:
+## Splits `text` into non-empty lines and shows the first one. A non-empty
+## `speaker` selects the spoken-dialogue presentation. Calling again while
+## open replaces the content.
+func show_text(text: String, _portrait_override: Texture2D = null, speaker: String = "") -> void:
 	var lines := PackedStringArray()
 	for raw_line in text.split("\n"):
 		var line := raw_line.strip_edges()
@@ -99,8 +115,10 @@ func show_text(text: String, portrait: Texture2D = null, speaker: String = "") -
 	_lines = lines
 	_line_index = 0
 	_panel.visible = true
-	_portrait.texture = portrait
-	_portrait.visible = portrait != null
+	_apply_presentation(not speaker.is_empty())
+	var show_liniang_portrait: bool = speaker == "丽娘" and liniang_portrait != null
+	_portrait.texture = liniang_portrait if show_liniang_portrait else null
+	_portrait.visible = show_liniang_portrait
 	_speaker_label.text = speaker
 	_speaker_label.visible = not speaker.is_empty()
 	_speaker_label.add_theme_color_override(&"font_color", _get_speaker_color(speaker))
@@ -206,6 +224,7 @@ func _enter_choice_mode() -> void:
 		label.text = option
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.add_theme_font_size_override(&"font_size", 20)
+		label.add_theme_color_override(&"font_color", Color(0.15, 0.12, 0.18, 1.0) if _is_spoken_dialogue else Color.WHITE)
 		_choice_list.add_child(label)
 	_choice_list.visible = true
 	_refresh_choice_labels()
@@ -249,6 +268,67 @@ func _get_speaker_color(speaker: String) -> Color:
 			return SPEAKER_COLOR_MAID
 		_:
 			return SPEAKER_COLOR_DEFAULT
+
+
+## Keeps narration and character speech as two visual presentations of the
+## same DialogueBox, so interaction flow and input locking remain unchanged.
+func _apply_presentation(spoken: bool) -> void:
+	_is_spoken_dialogue = spoken
+	_speech_frame.visible = spoken
+	if spoken:
+		# 2388 x 614 的对话框保持接近原图比例，落在画面中下方。
+		_panel.anchor_left = 0.5
+		_panel.anchor_top = 1.0
+		_panel.anchor_right = 0.5
+		_panel.anchor_bottom = 1.0
+		_panel.offset_left = -530.0
+		_panel.offset_top = -252.0
+		_panel.offset_right = 530.0
+		_panel.offset_bottom = 20.0
+		_margin.add_theme_constant_override(&"margin_left", 110)
+		_margin.add_theme_constant_override(&"margin_top", 62)
+		_margin.add_theme_constant_override(&"margin_right", 130)
+		_margin.add_theme_constant_override(&"margin_bottom", 48)
+		_content_row.add_theme_constant_override(&"separation", 8)
+		_portrait.custom_minimum_size = Vector2(200.0, 180.0)
+		_content_row.move_child(_choice_list, _content_row.get_child_count() - 1)
+		_content_row.move_child(_portrait, _content_row.get_child_count() - 1)
+		_text_label.add_theme_color_override(&"font_color", Color(0.15, 0.12, 0.18, 1.0))
+		_continue_hint.add_theme_color_override(&"font_color", Color(0.15, 0.12, 0.18, 1.0))
+	else:
+		# 旁白 / 调查字幕：整块摆进**下方黑边框**里。
+		# 高度问 FrameBars 而不是抄一个常数（AGENTS.md：边框厚度只有一个来源），
+		# 拿不到就退化成一个不出画的保守值。
+		# 注意 offset_bottom 必须 ≤ 0：正数会把面板推到画布外面，
+		# 字幕纵向居中之后就正好落在看不见的那一半里。
+		var band := _bottom_band_height()
+		_panel.anchor_left = 0.0
+		_panel.anchor_top = 1.0
+		_panel.anchor_right = 1.0
+		_panel.anchor_bottom = 1.0
+		_panel.offset_left = 48.0
+		_panel.offset_top = -band + SUBTITLE_BAND_INSET
+		_panel.offset_right = -48.0
+		_panel.offset_bottom = -SUBTITLE_BAND_INSET
+		_margin.add_theme_constant_override(&"margin_left", 14)
+		_margin.add_theme_constant_override(&"margin_top", 12)
+		_margin.add_theme_constant_override(&"margin_right", 14)
+		_margin.add_theme_constant_override(&"margin_bottom", 12)
+		_content_row.add_theme_constant_override(&"separation", 16)
+		_portrait.custom_minimum_size = Vector2(120.0, 120.0)
+		_text_label.add_theme_color_override(&"font_color", Color.WHITE)
+		_continue_hint.add_theme_color_override(&"font_color", Color.WHITE)
+
+
+## 下方黑边框的高度。问 FrameBars（`get_bar_height()`），它是这个数唯一的来源；
+## 没有边框的场景（前情提要、纯 UI 测试）退化成 SUBTITLE_BAND_FALLBACK。
+func _bottom_band_height() -> float:
+	var bars := get_node_or_null(frame_bars_path)
+	if bars != null and bars.has_method("get_bar_height"):
+		var h: float = bars.get_bar_height()
+		if h > SUBTITLE_BAND_INSET * 4.0:
+			return h
+	return SUBTITLE_BAND_FALLBACK
 
 
 func _confirm_choice() -> void:

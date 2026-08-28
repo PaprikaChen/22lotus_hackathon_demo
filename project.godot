@@ -27,16 +27,20 @@ MCPRuntimeServer="*res://addons/godot_mcp_toolkit/runtime/mcp_runtime_server.gd"
 
 [display]
 
-window/size/viewport_width=1616
-window/size/viewport_height=1008
+window/size/viewport_width=1472
+window/size/viewport_height=828
 window/size/mode=2
 window/size/window_width_override=1440
-window/size/window_height_override=898
+window/size/window_height_override=810
 window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg", "res://addons/godot_mcp_toolkit/plugin.cfg")
+
+[gui]
+
+theme/default_font="res://assets/fonts/汇文明朝体.otf"
 
 [input]
 

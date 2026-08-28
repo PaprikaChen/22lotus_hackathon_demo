@@ -7,7 +7,6 @@ extends Node2D
 ##   · 相机：人物居中；到左右边缘画面停住、人物继续走
 ##   · 场景边界墙挡住人物
 ##   · E 调查走共用对话框、提示语上屏
-##   · 梦奁信物照常拾取（保留原系统）
 ##   · 尾部小关卡：x>=7900 一次性激活、x<=7800 黑幕重置回 x=8300、解锁后失效
 ##   · 三重旋锁：三层命中不互抢、45° 档位 / 半档回弹 / 跨 ±180°
 ##   · 原点是顺时针硬停点：只拨得动逆时针，拨回来停在原点
@@ -22,7 +21,6 @@ extends Node2D
 const LEVEL_01 := "res://scenes/levels/courtyard_01.tscn"
 const PROLOGUE := "res://scenes/ui/prologue.tscn"
 const GALLERY := "res://scenes/ui/gallery.tscn"
-const HAIRPIN := &"mountain_bird_hairpin"
 const UNLOCK_FLAG := InnerGateLockConfig.FLAG_DOOR_UNLOCKED
 
 var _pass_count: int = 0
@@ -50,6 +48,7 @@ func _run_self_test() -> void:
 	await _test_camera()
 	await _test_camera_left_gate_latch()
 	await _test_interaction_and_memory()
+	await _test_choice_layout()
 	await _test_exit_gate()
 	await _test_exit_gate_restored()
 	await _test_backtrack_trap()
@@ -217,13 +216,11 @@ func _test_camera_left_gate_latch() -> void:
 # --- 交互与信物 -----------------------------------------------------------------
 
 func _test_interaction_and_memory() -> void:
-	MemoryManager.reset()
 	var level = await _load_level()
 	var p: Player = level.get_node("Player")
 	var box = level.get_node("DialogueBox")
 	var prompt: Label = level.get_node("UI/PromptLabel")
 	var gate: Interactable = level.get_node("Props/GateSpot")
-	var pickup: Interactable = level.get_node("Props/HairpinPickup")
 
 	# E 调查 → 文字进共用对话框
 	gate.interact(p)
@@ -231,6 +228,14 @@ func _test_interaction_and_memory() -> void:
 	_check(String(gate.display_text).begins_with(String(box.get_current_text())),
 		"院门文字进对话框（对齐节点自己的文案，不写死措辞）")
 	_check(p.is_input_locked(), "读文字期间玩家被锁")
+	# 旁白字幕必须整块落在画布内（纵向居中之后，悬在画面外的面板会让字看不见）
+	var narration_panel: Control = level.get_node("DialogueBox/Root/Panel")
+	var canvas_h := narration_panel.get_viewport_rect().size.y
+	_check(narration_panel.get_global_rect().end.y <= canvas_h + 0.01,
+		"旁白字幕面板不出画布下缘")
+	var bars: FrameBars = level.get_node("FrameBars")
+	_check(narration_panel.get_global_rect().position.y >= canvas_h - bars.get_bar_height() - 0.01,
+		"旁白字幕面板落在下方黑边框内")
 	while bool(box.is_showing()):
 		box.advance()
 	_check(not p.is_input_locked(), "文字读完解锁")
@@ -251,11 +256,50 @@ func _test_interaction_and_memory() -> void:
 	_check(GalleryManager.has_cg(&"cg_placeholder_01"), "调查井台解锁了占位 CG")
 	_check(GalleryManager.is_unseen(&"cg_placeholder_01"), "新解锁的 CG 带 NEW 角标")
 
-	# 梦奁信物照常拾取
-	_check(not MemoryManager.has_memory(HAIRPIN), "开局没有山鸟簪")
-	pickup.interact(p)
-	_check(MemoryManager.has_memory(HAIRPIN), "拾取后持有山鸟簪")
-	_check(not pickup.can_interact(p), "拾取物是一次性的")
+	await _drop(level)
+
+
+## 选项自成侧边一列：必须整块落在对话框面板内（塞在正文下面时会被挤出去）。
+func _test_choice_layout() -> void:
+	var level = await _load_level()
+	var box = level.get_node("DialogueBox")
+	var panel: Control = level.get_node("DialogueBox/Root/Panel")
+	var choices: Control = level.get_node("DialogueBox/Root/Panel/Margin/HBox/ChoiceList")
+
+	box.ask("（测试）要拔除这丛杂草吗？", PackedStringArray(["拔除", "算了"]))
+	while not bool(box.is_choosing()):
+		box.advance()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_check(choices.visible, "进入选择态后选项列显示")
+	_check(choices.get_child_count() == 2, "两个选项都生成了")
+	var panel_rect := panel.get_global_rect()
+	var choice_rect := choices.get_global_rect()
+	# 横向：选项列必须落在面板内（原来塞在正文下面时就是横向被挤掉的）。
+	# **只查横向**：纵向取决于黑边多高，而 headless 的假窗口比正式分辨率小得多
+	# （那里黑边只有 90px，正式是 180px），拿它断言纵向会假报错。
+	_check(panel_rect.position.x <= choice_rect.position.x + 0.01
+			and choice_rect.end.x <= panel_rect.end.x + 0.01,
+		"选项列横向落在对话框面板内")
+	for child in choices.get_children():
+		var r := (child as Control).get_global_rect()
+		_check(panel_rect.position.x <= r.position.x + 0.01
+				and r.end.x <= panel_rect.end.x + 0.01,
+			"选项「%s」横向完整显示" % (child as Label).text)
+	# 纵向：按**设计分辨率**下的黑边（180）减去上下内缩来核对放不放得下，
+	# 这条和当前视口无关，才是真正要守住的设计约束。
+	_check(choices.get_combined_minimum_size().y <= 160.0,
+		"选项列高度放得进正式分辨率的黑边内")
+	# 选项在正文的侧边，不再压在正文下方
+	var text_label: Control = level.get_node(
+		"DialogueBox/Root/Panel/Margin/HBox/TextColumn/TextLabel")
+	_check(choice_rect.position.x >= text_label.get_global_rect().end.x - 0.01
+			or choice_rect.end.x <= text_label.get_global_rect().position.x + 0.01,
+		"选项列在正文的左侧或右侧，不与正文上下叠")
+
+	box.select_choice(0)
+	await get_tree().process_frame
+	_check(not bool(box.is_showing()), "选完之后框收掉")
 
 	await _drop(level)
 

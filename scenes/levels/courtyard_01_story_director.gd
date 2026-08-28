@@ -35,15 +35,18 @@ const LOCK_CAMERA_SLIDE := &"west_gate_slide"
 @onready var _courtyard: CourtyardLevel = get_node(level_path) as CourtyardLevel
 @onready var _gate: Interactable = get_node_or_null(^"../Props/GateSpot")
 @onready var _well: Interactable = get_node_or_null(^"../Props/WellSpot")
-@onready var _hairpin: Interactable = get_node_or_null(^"../Props/HairpinPickup")
 @onready var _exit: LevelExit = get_node_or_null(^"../Props/ToNextLevel")
 @onready var _weeds: PassageGate = get_node_or_null(^"../Props/WeedsGate") as PassageGate
+@onready var _incense: AnimatedTextInteractable = \
+	get_node_or_null(^"../Props/IncenseBurner") as AnimatedTextInteractable
 @onready var _window_trigger: Area2D = get_node_or_null(^"../Props/WindowListeningTrigger") as Area2D
 @onready var _window_sfx: AudioStreamPlayer = \
 	get_node_or_null(^"../Props/WindowListeningTrigger/ListeningSfx") as AudioStreamPlayer
 @onready var _camera: FollowCamera2D = get_node_or_null(^"../FollowCamera2D") as FollowCamera2D
 @onready var _trap: BacktrackTrap = get_node_or_null(^"../Props/InnerGateTrap") as BacktrackTrap
 @onready var _lock: RotaryLockUI = get_node_or_null(^"../RotaryLock") as RotaryLockUI
+@onready var _dialogue: Node = get_node_or_null(dialogue_box_path)
+@onready var _paper_overlay: Control = get_node_or_null(^"../PaperOverlay/Root") as Control
 ## 锁没开之前挡在门后的实体墙。开锁后撤掉。
 @onready var _gate_blocker: CollisionObject2D = \
 	get_node_or_null(^"../Terrain/InnerGateBlocker") as CollisionObject2D
@@ -56,6 +59,8 @@ func _connect_actors() -> void:
 		_well.interacted.connect(_on_well_examined)
 	if _weeds != null:
 		_weeds.cleared.connect(_on_weeds_cleared)
+	if _incense != null:
+		_incense.interacted.connect(_on_incense_examined)
 	if _window_trigger != null:
 		_window_trigger.body_entered.connect(_on_window_trigger_entered)
 	# 门锁着时按 E 的反馈就是「把锁翻出来」：门自己只回答能不能走，
@@ -72,6 +77,7 @@ func _restore_story_state() -> void:
 	_apply_west_passage()
 	_apply_window_encounter()
 	_apply_inner_gate_lock()
+	_hide_paper_overlay()
 
 
 func _on_story_ready() -> void:
@@ -112,6 +118,20 @@ func _on_weeds_cleared() -> void:
 			func() -> void: player.unlock_input(LOCK_CAMERA_SLIDE),
 			CONNECT_ONE_SHOT)
 	_camera.slide_left_gate_open(WEST_GATE_SLIDE)
+
+
+func _on_incense_examined(_player: Node) -> void:
+	if _paper_overlay == null:
+		return
+	_paper_overlay.visible = true
+	# text_requested 在 interacted 之前已经打开共用对话框；仅监听这一次说明结束。
+	if _dialogue != null and _dialogue.has_signal(&"closed"):
+		_dialogue.connect(&"closed", _hide_paper_overlay, CONNECT_ONE_SHOT)
+
+
+func _hide_paper_overlay() -> void:
+	if _paper_overlay != null:
+		_paper_overlay.visible = false
 
 
 func _on_window_trigger_entered(body: Node2D) -> void:
