@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bgypo4k2v8j21"]
+[gd_scene load_steps=22 format=3 uid="uid://bgypo4k2v8j21"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -10,10 +10,22 @@
 [ext_resource type="Texture2D" uid="uid://cct4my2y3yp8o" path="res://assets/art/backgrounds/middle/courtyard_03_middle.png" id="8"]
 [ext_resource type="Texture2D" uid="uid://ddipl0b86ceqd" path="res://assets/art/backgrounds/front/courtyard_03_front.png" id="9"]
 [ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="10"]
-[ext_resource type="Script" path="res://scenes/levels/courtyard_03_story_director.gd" id="11"]
+[ext_resource type="Script" uid="uid://miw8oy2q4mpn" path="res://scenes/levels/courtyard_03_story_director.gd" id="11"]
+[ext_resource type="Texture2D" uid="uid://c4uhy3klo77sc" path="res://assets/art/sprites/interactables/courtyard_03/denglong1.png" id="12"]
+[ext_resource type="Texture2D" uid="uid://qt1u1px5cj71" path="res://assets/art/sprites/interactables/courtyard_03/denglong2.png" id="13"]
+[ext_resource type="Script" uid="uid://hcfqhpnlyqeg" path="res://scripts/components/floating_visual.gd" id="14"]
+[ext_resource type="Script" uid="uid://c8umyje2pgmr" path="res://scripts/components/brightness_pulse.gd" id="15"]
+[ext_resource type="Texture2D" uid="uid://cr35f3ay2qlhb" path="res://assets/art/backgrounds/front/courtyard_03_cover.png" id="16"]
+[ext_resource type="Texture2D" uid="uid://dnssp23yw4wai" path="res://assets/art/backgrounds/front/denglonglight.png" id="17"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(9820, 200)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_jgcmk"]
+radius = 620.38
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_frgev"]
+size = Vector2(292.481, 232.5)
 
 [sub_resource type="RectangleShape2D" id="EdgeWallShape"]
 size = Vector2(64, 800)
@@ -28,30 +40,31 @@ spawn_point_path = NodePath("SpawnPoint")
 
 [node name="Background" type="Node2D" parent="."]
 
-[node name="BackParallax" type="Parallax2D" parent="Background"]
+[node name="Back" type="Sprite2D" parent="Background"]
 z_index = -2
-scroll_scale = Vector2(0.995, 1)
-
-[node name="Backdrop" type="Sprite2D" parent="Background/BackParallax"]
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("7")
 centered = false
 script = ExtResource("10")
 
-[node name="Backdrop" type="Sprite2D" parent="Background"]
+[node name="Middle" type="Sprite2D" parent="Background"]
 z_index = -1
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("8")
 centered = false
 script = ExtResource("10")
 
-[node name="FrontParallax" type="Parallax2D" parent="Background"]
+[node name="Front" type="Sprite2D" parent="Background"]
 z_index = 1
-scroll_scale = Vector2(1.005, 1)
-
-[node name="Backdrop" type="Sprite2D" parent="Background/FrontParallax"]
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("9")
+centered = false
+script = ExtResource("10")
+
+[node name="Cover" type="Sprite2D" parent="Background"]
+z_index = 100
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("16")
 centered = false
 script = ExtResource("10")
 
@@ -60,6 +73,19 @@ script = ExtResource("10")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
 position = Vector2(4910, 660)
 shape = SubResource("GroundShape")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="Ground"]
+position = Vector2(3096, 1084)
+shape = SubResource("CircleShape2D_jgcmk")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="Ground"]
+position = Vector2(9198, 1092)
+shape = SubResource("CircleShape2D_jgcmk")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="Ground"]
+position = Vector2(9512, 648)
+rotation = 0.181344
+shape = SubResource("RectangleShape2D_frgev")
 
 [node name="Terrain" type="Node2D" parent="."]
 
@@ -82,6 +108,54 @@ position = Vector2(500, 560)
 
 [node name="Props" type="Node2D" parent="."]
 
+[node name="Lanterns" type="Node2D" parent="."]
+z_index = 101
+
+[node name="LanternLight" type="Sprite2D" parent="Lanterns"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("17")
+centered = false
+script = ExtResource("10")
+
+[node name="LanternOne" type="Node2D" parent="Lanterns"]
+script = ExtResource("14")
+amplitude = 7.0
+phase = 3.14159
+
+[node name="Art" type="Sprite2D" parent="Lanterns/LanternOne"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("12")
+centered = false
+script = ExtResource("10")
+
+[node name="BrightnessPulse" type="Node" parent="Lanterns/LanternOne"]
+script = ExtResource("15")
+target_path = NodePath("../Art")
+minimum_brightness = 0.62
+primary_period = 3.1
+secondary_period = 1.3
+primary_phase = 0.35
+secondary_phase = 2.2
+
+[node name="LanternTwo" type="Node2D" parent="Lanterns"]
+script = ExtResource("14")
+amplitude = 7.0
+
+[node name="Art" type="Sprite2D" parent="Lanterns/LanternTwo"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("13")
+centered = false
+script = ExtResource("10")
+
+[node name="BrightnessPulse" type="Node" parent="Lanterns/LanternTwo"]
+script = ExtResource("15")
+target_path = NodePath("../Art")
+minimum_brightness = 0.72
+primary_period = 4.6
+secondary_period = 1.9
+primary_phase = 2.7
+secondary_phase = 0.4
+
 [node name="NPCs" type="Node2D" parent="."]
 
 [node name="Cutscenes" type="Node" parent="."]
@@ -92,7 +166,7 @@ move_speed = 1100.0
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")
 target_path = NodePath("../Player")
-bounds_source_path = NodePath("../Background/Backdrop")
+bounds_source_path = NodePath("../Background/Middle")
 
 [node name="FrameBars" parent="." instance=ExtResource("5")]
 
