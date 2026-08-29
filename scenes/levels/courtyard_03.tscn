@@ -1,9 +1,9 @@
-[gd_scene load_steps=22 format=3 uid="uid://bgypo4k2v8j21"]
+[gd_scene load_steps=34 format=3 uid="uid://bgypo4k2v8j21"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="4"]
+[ext_resource type="PackedScene" uid="uid://c6xp5gugdegtg" path="res://scenes/ui/dialogue_box.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interaction_prompt.tscn" id="6"]
 [ext_resource type="Texture2D" uid="uid://dp8kpp2tyujc7" path="res://assets/art/backgrounds/back/courtyard_03_back.png" id="7"]
@@ -17,6 +17,16 @@
 [ext_resource type="Script" uid="uid://c8umyje2pgmr" path="res://scripts/components/brightness_pulse.gd" id="15"]
 [ext_resource type="Texture2D" uid="uid://cr35f3ay2qlhb" path="res://assets/art/backgrounds/front/courtyard_03_cover.png" id="16"]
 [ext_resource type="Texture2D" uid="uid://dnssp23yw4wai" path="res://assets/art/backgrounds/front/denglonglight.png" id="17"]
+[ext_resource type="Script" uid="uid://cynky25i23yb" path="res://scripts/components/interactable.gd" id="18"]
+[ext_resource type="Texture2D" uid="uid://cio7mewb80r1d" path="res://assets/art/sprites/interactables/courtyard_03/followeye.png" id="19"]
+[ext_resource type="Script" uid="uid://1iuiailr2eof" path="res://scripts/components/eye_follow_visual.gd" id="20"]
+[ext_resource type="Texture2D" uid="uid://blaxdajdmspua" path="res://assets/art/sprites/interactables/courtyard_03/eye.png" id="21"]
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="22"]
+[ext_resource type="Texture2D" uid="uid://bi105lc4xsmdd" path="res://assets/art/sprites/interactables/courtyard_03/denglong1_change.png" id="23"]
+[ext_resource type="Texture2D" uid="uid://c6b0ydv6js2qj" path="res://assets/art/sprites/interactables/courtyard_03/denglong2_change.png" id="24"]
+[ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="25"]
+[ext_resource type="Texture2D" uid="uid://shbf4ujr6c6t" path="res://assets/art/sprites/interactables/courtyard_03/xianglu.png" id="26"]
+[ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="27"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(9820, 200)
@@ -30,9 +40,16 @@ size = Vector2(292.481, 232.5)
 [sub_resource type="RectangleShape2D" id="EdgeWallShape"]
 size = Vector2(64, 800)
 
+[sub_resource type="CircleShape2D" id="InvestigationShape"]
+radius = 56.0
+
+[sub_resource type="RectangleShape2D" id="ExitShape"]
+size = Vector2(96, 560)
+
 [node name="Courtyard03" type="Node2D"]
 script = ExtResource("1")
 dialogue_box_path = NodePath("DialogueBox")
+level_exit_path = NodePath("Props/ToCourtyard04")
 level_id = &"courtyard_03"
 player_can_jump = false
 player_path = NodePath("Player")
@@ -54,10 +71,24 @@ texture = ExtResource("8")
 centered = false
 script = ExtResource("10")
 
+[node name="Eye" type="Sprite2D" parent="Background"]
+z_index = 2
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("21")
+centered = false
+script = ExtResource("10")
+
 [node name="Front" type="Sprite2D" parent="Background"]
 z_index = 1
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("9")
+centered = false
+script = ExtResource("10")
+
+[node name="IncenseBurner" type="Sprite2D" parent="Background"]
+z_index = -1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("26")
 centered = false
 script = ExtResource("10")
 
@@ -103,10 +134,157 @@ position = Vector2(9852, 360)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/WallRight"]
 shape = SubResource("EdgeWallShape")
 
+[node name="GateWallRight" type="StaticBody2D" parent="Bounds"]
+position = Vector2(7932, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/GateWallRight"]
+shape = SubResource("EdgeWallShape")
+
 [node name="SpawnPoint" type="Marker2D" parent="."]
 position = Vector2(500, 560)
 
 [node name="Props" type="Node2D" parent="."]
+
+[node name="InvestigationPoint01" type="Area2D" parent="Props"]
+position = Vector2(1025, 560)
+script = ExtResource("18")
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/InvestigationPoint01"]
+position = Vector2(-5, -197)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/InvestigationPoint01"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="InvestigationPoint02" type="Area2D" parent="Props"]
+position = Vector2(2200, 560)
+script = ExtResource("18")
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/InvestigationPoint02"]
+position = Vector2(0, -71)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/InvestigationPoint02"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="InvestigationPoint03" type="Area2D" parent="Props"]
+position = Vector2(5425, 560)
+script = ExtResource("18")
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/InvestigationPoint03"]
+position = Vector2(0, -117)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/InvestigationPoint03"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="LanternChangeTrigger" type="Area2D" parent="Props"]
+position = Vector2(7000, 560)
+script = ExtResource("18")
+prompt_text = "调查灯笼"
+one_shot = true
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/LanternChangeTrigger"]
+position = Vector2(0, -100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/LanternChangeTrigger"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="LanternClue01" type="Area2D" parent="Props"]
+visible = false
+position = Vector2(6750, 560)
+monitoring = false
+monitorable = false
+script = ExtResource("25")
+display_text = "纸条上写着：【腹藏星火，口吐青烟。】
+似乎是一个灯谜。"
+prompt_text = "调查痕迹"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/LanternClue01"]
+position = Vector2(47, -250)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/LanternClue01"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+disabled = true
+
+[node name="LanternClue02" type="Area2D" parent="Props"]
+visible = false
+position = Vector2(7115, 546)
+monitoring = false
+monitorable = false
+script = ExtResource("25")
+display_text = "纸条上写着：【不烹五谷，不煎汤药。】"
+prompt_text = "调查线索"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/LanternClue02"]
+position = Vector2(-18, -266)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/LanternClue02"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+disabled = true
+
+[node name="LanternClue03" type="Area2D" parent="Props"]
+position = Vector2(7215, 566)
+monitoring = false
+monitorable = false
+script = ExtResource("25")
+display_text = "纸条上写着：【一缕清芬，上达幽明。】"
+prompt_text = "调查变化"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/LanternClue03"]
+position = Vector2(0, -349)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/LanternClue03"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+disabled = true
+
+[node name="IncenseMemoryTrigger" type="Area2D" parent="Props"]
+visible = false
+position = Vector2(4500, 560)
+monitoring = false
+monitorable = false
+script = ExtResource("18")
+prompt_text = "触碰香炉"
+one_shot = true
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/IncenseMemoryTrigger"]
+position = Vector2(6, -30)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/IncenseMemoryTrigger"]
+position = Vector2(6, -30)
+shape = SubResource("InvestigationShape")
+disabled = true
+
+[node name="ToCourtyard04" type="Area2D" parent="Props"]
+position = Vector2(9700, 560)
+script = ExtResource("27")
+target_scene = "res://scenes/levels/courtyard_04.tscn"
+trigger_on_touch = true
+prompt_text = "前往下一处庭院"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/ToCourtyard04"]
+position = Vector2(0, -280)
+shape = SubResource("ExitShape")
+
+[node name="StatueEyeOrigin" type="Marker2D" parent="."]
+position = Vector2(2204, 548)
+gizmo_extents = 8.0
+
+[node name="StatueEyes" type="Node2D" parent="."]
+z_index = 102
+script = ExtResource("20")
+player_path = NodePath("../Player")
+eye_origin_path = NodePath("../StatueEyeOrigin")
+
+[node name="Art" type="Sprite2D" parent="StatueEyes"]
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("19")
+centered = false
+script = ExtResource("10")
 
 [node name="Lanterns" type="Node2D" parent="."]
 z_index = 101
@@ -131,11 +309,7 @@ script = ExtResource("10")
 [node name="BrightnessPulse" type="Node" parent="Lanterns/LanternOne"]
 script = ExtResource("15")
 target_path = NodePath("../Art")
-minimum_brightness = 0.62
-primary_period = 3.1
-secondary_period = 1.3
-primary_phase = 0.35
-secondary_phase = 2.2
+minimum_brightness = 0.25
 
 [node name="LanternTwo" type="Node2D" parent="Lanterns"]
 script = ExtResource("14")
@@ -150,11 +324,7 @@ script = ExtResource("10")
 [node name="BrightnessPulse" type="Node" parent="Lanterns/LanternTwo"]
 script = ExtResource("15")
 target_path = NodePath("../Art")
-minimum_brightness = 0.72
-primary_period = 4.6
-secondary_period = 1.9
-primary_phase = 2.7
-secondary_phase = 0.4
+minimum_brightness = 0.38
 
 [node name="NPCs" type="Node2D" parent="."]
 
@@ -173,6 +343,11 @@ bounds_source_path = NodePath("../Background/Middle")
 [node name="DialogueBox" parent="." instance=ExtResource("4")]
 player_path = NodePath("../Player")
 
+[node name="ScreenFade" parent="." instance=ExtResource("22")]
+
+[node name="WhiteFade" parent="." instance=ExtResource("22")]
+color = Color(1, 1, 1, 1)
+
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="InteractionPrompt" parent="UI" instance=ExtResource("6")]
@@ -186,3 +361,9 @@ player_path = NodePath("../../Player")
 
 [node name="StoryDirector" type="Node" parent="."]
 script = ExtResource("11")
+dialogue_box_path = NodePath("../DialogueBox")
+screen_fade_path = NodePath("../ScreenFade")
+white_fade_path = NodePath("../WhiteFade")
+player_path = NodePath("../Player")
+lantern_one_changed_texture = ExtResource("23")
+lantern_two_changed_texture = ExtResource("24")

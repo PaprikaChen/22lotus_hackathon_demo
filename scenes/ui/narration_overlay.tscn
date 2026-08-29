@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/narration_overlay.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://dg60voccy7y5" path="res://assets/fonts/汇文明朝体.otf" id="2"]
+
+[node name="NarrationOverlay" type="CanvasLayer"]
+layer = 80
+script = ExtResource("1")
+font = ExtResource("2")

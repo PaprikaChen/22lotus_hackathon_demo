@@ -95,3 +95,15 @@ func go_to_next_level(target_scene: String) -> void:
 	# 只在独立运行时真的切场景（被测试当子场景实例化时不切）。
 	if get_tree().current_scene == self:
 		get_tree().change_scene_to_file.call_deferred(target_scene)
+
+
+## 进入不应成为存档落点的临时演出关卡。离开前仍保存当前庭院坐标，返回时
+## LevelBase 会把玩家放回原处；临时场景自身绝不写进 current_scene。
+func go_to_temporary_scene(target_scene: String) -> bool:
+	if _leaving or target_scene.is_empty() or not ResourceLoader.exists(target_scene):
+		return false
+	_leaving = true
+	autosave()
+	if get_tree().current_scene == self:
+		get_tree().change_scene_to_file.call_deferred(target_scene)
+	return true

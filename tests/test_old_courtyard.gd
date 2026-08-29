@@ -178,13 +178,13 @@ func _run_self_test() -> void:
 	while bool(_box.is_showing()):
 		_box.advance()
 
-	# Portrait slot: optional, shown only when a texture is passed.
-	var portrait_rect: TextureRect = _box.get_node("Root/Panel/Margin/HBox/Portrait")
+	# Portrait is an independent oversized layer, shown only for Liniang dialogue.
+	var portrait_rect: TextureRect = _box.get_node("Root/Portrait")
 	_box.show_text("测试无立绘")
 	_check(not portrait_rect.visible, "portrait hidden for plain interaction text")
 	_box.advance()
-	_box.show_text("测试立绘", load("res://icon.svg"))
-	_check(portrait_rect.visible, "portrait shown when a texture is provided")
+	_box.show_text("测试立绘", null, "丽娘")
+	_check(portrait_rect.visible, "portrait shown for Liniang dialogue")
 	_box.hide_box()
 	_check(not bool(_box.is_showing()), "hide_box() hides the panel")
 

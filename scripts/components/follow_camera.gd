@@ -39,10 +39,17 @@ signal left_gate_opened
 ## 手改的值会被下一次 refresh_bounds() 冲掉。闸门是独立的一层，
 ## 每次算完边界都会重新叠上去。
 @export var left_gate_x: int = -1: set = set_left_gate
+## ≥ 0 时把右边界额外收窄到这个世界 x：画面最右侧就停在这里，右边的场景先
+## 看不见。剧情放行后调 `release_right_gate()` 回到真实场景边界。
+##
+## 注意闸门只管**画面**。要让人物也走不过去，得在关卡里另外摆一堵墙——
+## 相机不负责挡人（AGENTS.md：相机不做碰撞）。
+@export var right_gate_x: int = -1: set = set_right_gate
 
 var _target: Node2D = null
-## 背景算出来的真实左边界，闸门放开后要回到这个值。
+## 背景算出来的真实左右边界，闸门放开后要回到这些值。
 var _bounds_limit_left: int = 0
+var _bounds_limit_right: int = 0
 ## 待落的左闸门位置（见 `arm_left_gate_latch()`）。-1 = 没有。
 var _left_gate_latch_x: int = -1
 
@@ -109,6 +116,29 @@ func is_left_gate_closed() -> bool:
 	return left_gate_x >= 0
 
 
+# --- 右侧闸门 -------------------------------------------------------------------
+
+## 放开右侧闸门。幂等，读档恢复也调它。
+func release_right_gate() -> void:
+	set_right_gate(-1)
+
+
+## 收窄/移动右侧闸门。传 -1 = 取消闸门。
+func set_right_gate(x: int) -> void:
+	right_gate_x = x
+	if is_inside_tree():
+		_apply_right_gate()
+
+
+func is_right_gate_closed() -> bool:
+	return right_gate_x >= 0
+
+
+## 画面最右侧的世界坐标。和 get_screen_left_edge() 一样读的是**画面中心**。
+func get_screen_right_edge() -> float:
+	return get_screen_center_position().x + get_viewport_rect().size.x / zoom.x * 0.5
+
+
 # --- 左侧闸门的「走过就落闸」模式 -----------------------------------------------
 
 ## 挂一道待落的左闸门：**等画面最左侧自己走到 x 再落闸**，而不是人一到某个
@@ -161,7 +191,8 @@ func _apply_bounds(bounds: Rect2) -> void:
 		return
 	_bounds_limit_left = int(bounds.position.x)
 	limit_left = _bounds_limit_left
-	limit_right = int(bounds.position.x + bounds.size.x)
+	_bounds_limit_right = int(bounds.position.x + bounds.size.x)
+	limit_right = _bounds_limit_right
 	var view := get_viewport_rect().size / zoom
 	# 纵向 limit 只在世界比画面高的时候才有意义。画布上下多出影院边框之后
 	# 画面（888）比世界（648）高，这时钳制会把相机往里推，游戏画面就不再
@@ -177,11 +208,16 @@ func _apply_bounds(bounds: Rect2) -> void:
 			"FollowCamera2D: 场景宽 %d < 视口宽 %d，左右 limit 会冲突导致画面抖动。"
 			% [int(bounds.size.x), int(view.x)])
 	_apply_left_gate()
+	_apply_right_gate()
 
 
 ## 闸门只会**收窄**可见范围，永远不会把画面推到场景外面去。
 func _apply_left_gate() -> void:
 	limit_left = maxi(_bounds_limit_left, left_gate_x) if left_gate_x >= 0 else _bounds_limit_left
+
+
+func _apply_right_gate() -> void:
+	limit_right = mini(_bounds_limit_right, right_gate_x) if right_gate_x >= 0 else _bounds_limit_right
 
 
 func _apply_smoothing() -> void:

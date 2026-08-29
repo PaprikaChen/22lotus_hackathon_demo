@@ -1,0 +1,155 @@
+[gd_scene load_steps=17 format=3 uid="uid://btcqud1h41q5p"]
+
+[ext_resource type="Script" path="res://scenes/levels/courtyard_03_incense_memory_level.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
+[ext_resource type="PackedScene" uid="uid://c6xp5gugdegtg" path="res://scenes/ui/dialogue_box.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interaction_prompt.tscn" id="6"]
+[ext_resource type="Texture2D" uid="uid://b1fgf5ac2xs6n" path="res://assets/art/backgrounds/middle/courtyard_03_middle_change.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://b17jpgkhw5ny6" path="res://assets/art/backgrounds/front/courtyard_03_front_change.png" id="8"]
+[ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="9"]
+[ext_resource type="Script" uid="uid://cynky25i23yb" path="res://scripts/components/interactable.gd" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="11"]
+[ext_resource type="Script" uid="uid://chcepwsloyf57" path="res://scenes/levels/courtyard_03_incense_memory_story_director.gd" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/ui/narration_overlay.tscn" id="13"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(3904, 200)
+
+[sub_resource type="RectangleShape2D" id="EdgeWallShape"]
+size = Vector2(64, 800)
+
+[sub_resource type="CircleShape2D" id="InteractionShape"]
+radius = 56.0
+
+[node name="Courtyard03IncenseMemory" type="Node2D"]
+script = ExtResource("1")
+level_id = &"courtyard_03_incense_memory"
+player_can_jump = false
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="Background" type="Node2D" parent="."]
+
+[node name="Middle" type="Sprite2D" parent="Background"]
+z_index = -1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("7")
+centered = false
+script = ExtResource("9")
+
+[node name="Front" type="Sprite2D" parent="Background"]
+z_index = 1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("8")
+centered = false
+script = ExtResource("9")
+
+[node name="Ground" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Ground"]
+position = Vector2(1952, 660)
+shape = SubResource("GroundShape")
+
+[node name="Bounds" type="Node2D" parent="."]
+
+[node name="WallLeft" type="StaticBody2D" parent="Bounds"]
+position = Vector2(-32, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/WallLeft"]
+shape = SubResource("EdgeWallShape")
+
+[node name="WallRight" type="StaticBody2D" parent="Bounds"]
+position = Vector2(3936, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bounds/WallRight"]
+shape = SubResource("EdgeWallShape")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(1952, 560)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="IncenseMemory" type="Area2D" parent="Props"]
+position = Vector2(1349, 560)
+script = ExtResource("10")
+prompt_text = "触碰香炉"
+one_shot = true
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/IncenseMemory"]
+position = Vector2(0, -100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/IncenseMemory"]
+position = Vector2(0, -55)
+shape = SubResource("InteractionShape")
+
+[node name="WoodenHorseMemory" type="Area2D" parent="Props"]
+visible = false
+position = Vector2(1952, 560)
+monitoring = false
+monitorable = false
+script = ExtResource("10")
+prompt_text = "触碰木马"
+one_shot = true
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/WoodenHorseMemory"]
+position = Vector2(0, -100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/WoodenHorseMemory"]
+position = Vector2(0, -55)
+shape = SubResource("InteractionShape")
+disabled = true
+
+[node name="PrayerClothMemory" type="Area2D" parent="Props"]
+visible = false
+position = Vector2(2646, 514)
+monitoring = false
+monitorable = false
+script = ExtResource("10")
+prompt_text = "触碰岁安绦"
+one_shot = true
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/PrayerClothMemory"]
+position = Vector2(0, -87)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/PrayerClothMemory"]
+position = Vector2(0, -55)
+shape = SubResource("InteractionShape")
+disabled = true
+
+[node name="Player" parent="." instance=ExtResource("2")]
+move_speed = 1100.0
+
+[node name="FollowCamera2D" type="Camera2D" parent="."]
+script = ExtResource("3")
+target_path = NodePath("../Player")
+bounds_source_path = NodePath("../Background/Middle")
+
+[node name="FrameBars" parent="." instance=ExtResource("5")]
+
+[node name="DialogueBox" parent="." instance=ExtResource("4")]
+player_path = NodePath("../Player")
+
+[node name="NarrationOverlay" parent="." instance=ExtResource("13")]
+
+[node name="WhiteFade" parent="." instance=ExtResource("11")]
+color = Color(1, 1, 1, 1)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InteractionPrompt" parent="UI" instance=ExtResource("6")]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
+player_path = NodePath("../../Player")
+
+[node name="StoryDirector" type="Node" parent="."]
+script = ExtResource("12")
+dialogue_box_path = NodePath("../DialogueBox")
+white_fade_path = NodePath("../WhiteFade")
+narration_overlay_path = NodePath("../NarrationOverlay")
+player_path = NodePath("../Player")

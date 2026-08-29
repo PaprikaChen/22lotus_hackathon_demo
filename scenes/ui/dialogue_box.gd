@@ -21,25 +21,32 @@ const SUBTITLE_BAND_INSET := 10.0
 ## 场景里没有 FrameBars 时旁白字幕面板的高度。
 const SUBTITLE_BAND_FALLBACK := 148.0
 ## 人名使用低饱和的莫兰迪色，正文保持统一，避免颜色抢过台词本身。
-const SPEAKER_COLOR_DEFAULT := Color(0.78, 0.74, 0.82, 1.0)
-const SPEAKER_COLOR_LINIANG := Color(0.56, 0.43, 0.65, 1.0)
-const SPEAKER_COLOR_SERVANT := Color(0.40, 0.56, 0.68, 1.0)
-const SPEAKER_COLOR_CHUNXIANG := Color(0.74, 0.51, 0.61, 1.0)
-const SPEAKER_COLOR_MAID := Color(0.67, 0.49, 0.57, 1.0)
+const SPEAKER_COLOR_DEFAULT := Color(0.31, 0.28, 0.35, 1.0)
+const SPEAKER_COLOR_LINIANG := Color(0.34, 0.24, 0.40, 1.0)
+const SPEAKER_COLOR_SERVANT := Color(0.23, 0.32, 0.38, 1.0)
+const SPEAKER_COLOR_CHUNXIANG := Color(0.40, 0.27, 0.33, 1.0)
+const SPEAKER_COLOR_MAID := Color(0.36, 0.27, 0.31, 1.0)
 
 ## Player to lock while the box is open (optional).
 @export var player_path: NodePath
 ## 目前唯一接入的说话角色立绘；场景资源负责指定图片，脚本不依赖素材路径。
 @export var liniang_portrait: Texture2D
+## 特殊演出可保留“丽娘”说话人样式但关闭立绘（例如幼年记忆关卡）。
+@export var liniang_portrait_enabled: bool = true
+## 半透明黑幕压暗世界。它的用途是**给压在画面上的展示物让出注意力**——
+## 立绘、以后的信纸／物品图。纯字幕（调查点的解释文字）没有展示物，压暗只会
+## 让玩家以为场景变了，所以默认不压。个别演出想让旁白也压暗时把它打开。
+@export var dim_world_for_narration: bool = false
 ## 同关卡里的 FrameBars（默认取同级节点）。只用来问下边框多高——
 ## 旁白字幕要摆在那条黑边里。找不到就走 SUBTITLE_BAND_FALLBACK。
 @export var frame_bars_path: NodePath = ^"../FrameBars"
 
 @onready var _panel: Control = $Root/Panel
+@onready var _world_dimmer: CanvasLayer = $WorldDimmer
 @onready var _speech_frame: TextureRect = $Root/Panel/SpeechFrame
 @onready var _margin: MarginContainer = $Root/Panel/Margin
 @onready var _content_row: HBoxContainer = $Root/Panel/Margin/HBox
-@onready var _portrait: TextureRect = $Root/Panel/Margin/HBox/Portrait
+@onready var _portrait: TextureRect = $Root/Portrait
 @onready var _speaker_label: Label = $Root/Panel/Margin/HBox/TextColumn/SpeakerLabel
 @onready var _text_label: Label = $Root/Panel/Margin/HBox/TextColumn/TextLabel
 @onready var _continue_hint: Label = $Root/Panel/ContinueHint
@@ -66,7 +73,7 @@ var _cancel_held: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_panel.visible = false
+	_set_dialogue_visible(false)
 	_choice_list.visible = false
 	_player = get_node_or_null(player_path)
 
@@ -114,9 +121,10 @@ func show_text(text: String, _portrait_override: Texture2D = null, speaker: Stri
 	_exit_choice_mode()
 	_lines = lines
 	_line_index = 0
-	_panel.visible = true
+	_set_dialogue_visible(true)
 	_apply_presentation(not speaker.is_empty())
-	var show_liniang_portrait: bool = speaker == "丽娘" and liniang_portrait != null
+	var show_liniang_portrait: bool = (
+		speaker == "丽娘" and liniang_portrait_enabled and liniang_portrait != null)
 	_portrait.texture = liniang_portrait if show_liniang_portrait else null
 	_portrait.visible = show_liniang_portrait
 	_speaker_label.text = speaker
@@ -143,7 +151,7 @@ func ask(text: String, options: PackedStringArray,
 	_options = options
 	if _lines.is_empty():
 		# 没有文字可放，直接进选择态（show_text 这时没开框，得自己开）。
-		_panel.visible = true
+		_set_dialogue_visible(true)
 		_lock_player()
 		_enter_choice_mode()
 	return await choice_selected
@@ -181,7 +189,7 @@ func advance() -> void:
 func hide_box() -> void:
 	if not _panel.visible:
 		return
-	_panel.visible = false
+	_set_dialogue_visible(false)
 	_lines = PackedStringArray()
 	_exit_choice_mode()
 	_unlock_player()
@@ -195,6 +203,20 @@ func is_showing() -> bool:
 ## The line currently on screen ("" when hidden).
 func get_current_text() -> String:
 	return _text_label.text if _panel.visible else ""
+
+
+func _set_dialogue_visible(visible: bool) -> void:
+	_panel.visible = visible
+	if not visible:
+		_portrait.visible = false
+	_refresh_world_dimmer()
+
+
+## 黑幕跟着「画面上有没有展示物」走，不是跟着「对话框开没开」走。
+## 以后接入物品展示（信纸等）时，把那个判断并进这里，别再各处自己开黑幕。
+func _refresh_world_dimmer() -> void:
+	_world_dimmer.visible = (
+		_panel.visible and (_is_spoken_dialogue or dim_world_for_narration))
 
 
 # --- Internal ---------------------------------------------------------------------
@@ -258,11 +280,11 @@ func _refresh_choice_labels() -> void:
 
 func _get_speaker_color(speaker: String) -> Color:
 	match speaker:
-		"丽娘":
+		"丽娘", "幼年丽娘":
 			return SPEAKER_COLOR_LINIANG
 		"家丁":
 			return SPEAKER_COLOR_SERVANT
-		"丫鬟春香":
+		"丫鬟春香", "幼年春香":
 			return SPEAKER_COLOR_CHUNXIANG
 		"丫鬟":
 			return SPEAKER_COLOR_MAID
@@ -275,6 +297,7 @@ func _get_speaker_color(speaker: String) -> Color:
 func _apply_presentation(spoken: bool) -> void:
 	_is_spoken_dialogue = spoken
 	_speech_frame.visible = spoken
+	_refresh_world_dimmer()
 	if spoken:
 		# 2388 x 614 的对话框保持接近原图比例，落在画面中下方。
 		_panel.anchor_left = 0.5
@@ -287,12 +310,11 @@ func _apply_presentation(spoken: bool) -> void:
 		_panel.offset_bottom = 20.0
 		_margin.add_theme_constant_override(&"margin_left", 110)
 		_margin.add_theme_constant_override(&"margin_top", 62)
-		_margin.add_theme_constant_override(&"margin_right", 130)
+		# 大立绘独立悬在 Panel 右侧，正文在右边预留空间，二者互不挤压。
+		_margin.add_theme_constant_override(&"margin_right", 380)
 		_margin.add_theme_constant_override(&"margin_bottom", 48)
 		_content_row.add_theme_constant_override(&"separation", 8)
-		_portrait.custom_minimum_size = Vector2(200.0, 180.0)
 		_content_row.move_child(_choice_list, _content_row.get_child_count() - 1)
-		_content_row.move_child(_portrait, _content_row.get_child_count() - 1)
 		_text_label.add_theme_color_override(&"font_color", Color(0.15, 0.12, 0.18, 1.0))
 		_continue_hint.add_theme_color_override(&"font_color", Color(0.15, 0.12, 0.18, 1.0))
 	else:
@@ -315,7 +337,6 @@ func _apply_presentation(spoken: bool) -> void:
 		_margin.add_theme_constant_override(&"margin_right", 14)
 		_margin.add_theme_constant_override(&"margin_bottom", 12)
 		_content_row.add_theme_constant_override(&"separation", 16)
-		_portrait.custom_minimum_size = Vector2(120.0, 120.0)
 		_text_label.add_theme_color_override(&"font_color", Color.WHITE)
 		_continue_hint.add_theme_color_override(&"font_color", Color.WHITE)
 

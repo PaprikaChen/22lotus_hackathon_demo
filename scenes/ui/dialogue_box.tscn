@@ -1,21 +1,42 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3 uid="uid://c6xp5gugdegtg"]
 
-[ext_resource type="Script" path="res://scenes/ui/dialogue_box.gd" id="1"]
-[ext_resource type="Texture2D" path="res://assets/art/sprites/ui/对话框.png" id="2"]
-[ext_resource type="Texture2D" path="res://assets/art/sprites/liniang/立绘.png" id="3"]
+[ext_resource type="Script" uid="uid://gy1ag787jjlx" path="res://scenes/ui/dialogue_box.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://dhdhsunhjivbd" path="res://assets/art/sprites/ui/对话框.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://b4kn1kb8nl7w0" path="res://assets/art/sprites/liniang/立绘.png" id="3"]
+
+[sub_resource type="AtlasTexture" id="LiniangTopTwoThirds"]
+atlas = ExtResource("3")
+region = Rect2(0, 0, 729, 702)
 
 [node name="DialogueBox" type="CanvasLayer"]
 layer = 60
 script = ExtResource("1")
-liniang_portrait = ExtResource("3")
+liniang_portrait = SubResource("LiniangTopTwoThirds")
 
-[node name="Root" type="Control" parent="."]
+[node name="WorldDimmer" type="CanvasLayer" parent="."]
+layer = 0
+
+[node name="Dimmer" type="ColorRect" parent="WorldDimmer"]
+z_index = 4095
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
 [node name="Panel" type="Control" parent="Root"]
+anchors_preset = 0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -26,11 +47,11 @@ offset_bottom = -16.0
 mouse_filter = 2
 
 [node name="Bg" type="ColorRect" parent="Root/Panel"]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.05, 0.04, 0.09, 0)
 mouse_filter = 2
+color = Color(0.05, 0.04, 0.09, 0)
 
 [node name="SpeechFrame" type="TextureRect" parent="Root/Panel"]
 visible = false
@@ -40,13 +61,13 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 5
-mouse_filter = 2
 
 [node name="Margin" type="MarginContainer" parent="Root/Panel"]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
@@ -60,14 +81,6 @@ layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 16
 
-[node name="Portrait" type="TextureRect" parent="Root/Panel/Margin/HBox"]
-visible = false
-layout_mode = 2
-custom_minimum_size = Vector2(120, 120)
-expand_mode = 1
-stretch_mode = 5
-mouse_filter = 2
-
 [node name="TextColumn" type="VBoxContainer" parent="Root/Panel/Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -78,27 +91,27 @@ alignment = 1
 [node name="SpeakerLabel" type="Label" parent="Root/Panel/Margin/HBox/TextColumn"]
 visible = false
 layout_mode = 2
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 18
 
 [node name="TextLabel" type="Label" parent="Root/Panel/Margin/HBox/TextColumn"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 20
 horizontal_alignment = 1
 vertical_alignment = 1
-theme_override_font_sizes/font_size = 20
 autowrap_mode = 3
-
 
 [node name="ChoiceList" type="VBoxContainer" parent="Root/Panel/Margin/HBox"]
 visible = false
-layout_mode = 2
 custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
 theme_override_constants/separation = 4
 
 [node name="ContinueHint" type="Label" parent="Root/Panel"]
+layout_mode = 0
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 16.0
@@ -106,4 +119,21 @@ offset_top = -34.0
 offset_right = 220.0
 offset_bottom = -10.0
 theme_override_font_sizes/font_size = 14
+
+[node name="Portrait" type="TextureRect" parent="Root"]
+visible = false
+z_index = 2
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -510.0
+offset_top = -424.0
+offset_right = -70.0
+grow_horizontal = 0
+grow_vertical = 0
 mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5

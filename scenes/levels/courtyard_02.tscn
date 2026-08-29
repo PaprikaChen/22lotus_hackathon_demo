@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
 [ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
+[ext_resource type="PackedScene" uid="uid://c6xp5gugdegtg" path="res://scenes/ui/dialogue_box.tscn" id="8"]
 [ext_resource type="Script" uid="uid://coewhcvhnakhw" path="res://scenes/levels/courtyard_02_story_director.gd" id="11"]
 [ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="12"]
 [ext_resource type="Texture2D" uid="uid://lvuqs3ta0upi" path="res://assets/art/backgrounds/back/courtyard_02_back.png" id="13"]

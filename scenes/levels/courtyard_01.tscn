@@ -5,7 +5,7 @@
 [ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
 [ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="4"]
 [ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="7"]
-[ext_resource type="PackedScene" path="res://scenes/ui/dialogue_box.tscn" id="8"]
+[ext_resource type="PackedScene" uid="uid://c6xp5gugdegtg" path="res://scenes/ui/dialogue_box.tscn" id="8"]
 [ext_resource type="Script" uid="uid://ow7x77576cjd" path="res://scenes/levels/courtyard_01_story_director.gd" id="11"]
 [ext_resource type="Texture2D" uid="uid://53esgqvyk4nb" path="res://assets/art/backgrounds/back/courtyard_01_back.png" id="12"]
 [ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="13"]
@@ -226,6 +226,7 @@ shape = SubResource("InteractShape")
 [node name="ArtPivot" type="Node2D" parent="Props/IncenseBurner"]
 
 [node name="IncenseArt" type="Sprite2D" parent="Props/IncenseBurner/ArtPivot"]
+z_index = -1
 position = Vector2(-4464, -560)
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("27")
