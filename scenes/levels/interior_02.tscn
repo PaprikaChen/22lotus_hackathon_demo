@@ -1,0 +1,179 @@
+[gd_scene load_steps=12 format=3 uid="uid://c43in1d305bnd"]
+
+[ext_resource type="Script" uid="uid://djwgg3eud2o1y" path="res://scenes/levels/interior_02.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="3"]
+[ext_resource type="Script" uid="uid://vnoslbt4phyd" path="res://scripts/components/shadow_puppet_actor.gd" id="4"]
+[ext_resource type="FontFile" uid="uid://dg60voccy7y5" path="res://assets/fonts/汇文明朝体.otf" id="5"]
+[ext_resource type="Script" uid="uid://s1yiuan7cyp2" path="res://scripts/ui/shadow_play_finale.gd" id="6"]
+[ext_resource type="Script" uid="uid://yjts2i54a6o" path="res://scripts/components/level_bgm.gd" id="bgm_script"]
+[ext_resource type="AudioStream" uid="uid://b3m0v7a4heiip" path="res://assets/audio/music/01interior_02.mp3" id="bgm_stream"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(1800, 200)
+
+[sub_resource type="RectangleShape2D" id="LeftWallShape"]
+size = Vector2(64, 1100)
+
+[sub_resource type="RectangleShape2D" id="ExitShape"]
+size = Vector2(72, 360)
+
+[node name="Interior02" type="Node2D"]
+script = ExtResource("1")
+stage_visual_path = NodePath("StageVisual")
+background_path = NodePath("StageVisual/Background")
+middle_path = NodePath("StageVisual/Middle")
+front_path = NodePath("StageVisual/Front")
+puppet_actor_path = NodePath("Player/PuppetVisual")
+original_player_visual_path = NodePath("Player/PlayerVisual")
+dad_pivot_path = NodePath("DadPivot")
+dad_actor_path = NodePath("DadPivot/PuppetVisual")
+dad_sprite_path = NodePath("DadPivot/PuppetVisual/Sprite")
+boat_sprite_path = NodePath("Player/Boat")
+ground_path = NodePath("Terrain/Ground")
+left_wall_path = NodePath("Terrain/LeftWall")
+exit_trigger_path = NodePath("ExitTrigger")
+caption_path = NodePath("CaptionLayer/Caption")
+finale_path = NodePath("FinaleLayer")
+fade_path = NodePath("ScreenFade")
+dream_gap_path = NodePath("Player/DreamGapAbility")
+interaction_detector_path = NodePath("Player/InteractionDetector")
+level_id = &"interior_02"
+player_can_jump = false
+player_footsteps = false
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="StageVisual" type="Node2D" parent="."]
+
+[node name="Background" type="Sprite2D" parent="StageVisual"]
+z_index = -30
+centered = false
+
+[node name="Middle" type="Sprite2D" parent="StageVisual"]
+z_index = -10
+centered = false
+
+[node name="Front" type="Sprite2D" parent="StageVisual"]
+z_index = 20
+centered = false
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Ground" type="StaticBody2D" parent="Terrain"]
+position = Vector2(736, 800)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="LeftWall" type="StaticBody2D" parent="Terrain"]
+position = Vector2(38, 486)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/LeftWall"]
+shape = SubResource("LeftWallShape")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(190, 700)
+
+[node name="DadPivot" type="Node2D" parent="."]
+visible = false
+z_index = -1
+
+[node name="PuppetVisual" type="Node2D" parent="DadPivot"]
+script = ExtResource("4")
+player_path = NodePath("../../Player")
+bob_height = 5.0
+sway_degrees = 2.2
+motion_frequency = 2.0
+
+[node name="Sprite" type="Sprite2D" parent="DadPivot/PuppetVisual"]
+centered = false
+
+[node name="Player" parent="." instance=ExtResource("2")]
+move_speed = 200.0
+acceleration = 1800.0
+deceleration = 2200.0
+
+[node name="PuppetVisual" type="Node2D" parent="Player"]
+script = ExtResource("4")
+
+[node name="Sprite" type="Sprite2D" parent="Player/PuppetVisual"]
+centered = false
+
+[node name="Boat" type="Sprite2D" parent="Player"]
+z_index = -2
+centered = false
+
+[node name="ExitTrigger" type="Area2D" parent="."]
+position = Vector2(1370, 700)
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitTrigger"]
+shape = SubResource("ExitShape")
+
+[node name="CaptionLayer" type="CanvasLayer" parent="."]
+layer = 30
+
+[node name="Caption" type="Label" parent="CaptionLayer"]
+visible = false
+offset_right = 460.0
+offset_bottom = 90.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 30
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="FinaleLayer" type="CanvasLayer" parent="."]
+layer = 40
+script = ExtResource("6")
+title_path = NodePath("Title")
+credit_path = NodePath("Credit")
+thanks_path = NodePath("Thanks")
+
+[node name="Title" type="Label" parent="FinaleLayer"]
+visible = false
+offset_left = 286.0
+offset_top = 560.0
+offset_right = 1186.0
+offset_bottom = 670.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Credit" type="Label" parent="FinaleLayer"]
+visible = false
+offset_left = 90.0
+offset_top = 300.0
+offset_right = 790.0
+offset_bottom = 460.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 32
+vertical_alignment = 1
+
+[node name="Thanks" type="Label" parent="FinaleLayer"]
+visible = false
+offset_left = 336.0
+offset_top = 340.0
+offset_right = 1136.0
+offset_bottom = 470.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 0
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 46
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScreenFade" parent="." instance=ExtResource("3")]
+
+[node name="Bgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("bgm_stream")
+script = ExtResource("bgm_script")
+
+[editable path="Player"]

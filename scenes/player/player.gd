@@ -57,6 +57,7 @@ enum State { IDLE, RUN, JUMP, FALL, DISABLED, INTERACT }
 @export var depth_acceleration: float = 1100.0
 @export var depth_deceleration: float = 1500.0
 
+@onready var _footsteps: Node = get_node_or_null(^"FootstepSfx")
 @onready var _body_collision: CollisionShape2D = $CollisionShape2D
 @onready var _depth_collision: CollisionShape2D = $DepthCollisionShape2D
 @onready var _detector: Area2D = $InteractionDetector
@@ -103,6 +104,14 @@ func set_movement_mode(mode: MovementMode.Mode) -> void:
 	# applies the geometry again once they do.
 	if is_node_ready():
 		_apply_mode_geometry()
+
+
+## 关掉 / 打开脚步声。**纯转发**给 FootstepSfx 组件——移动逻辑不读它，
+## 也不知道音频是怎么播的，只是把关卡配置递下去（和 `jump_enabled` 同一条通道）。
+## 有些关卡里丽娘不是"走"在地上（interior_02 站在船上），脚步声必须能整关关掉。
+func set_footsteps_enabled(value: bool) -> void:
+	if _footsteps != null and &"enabled" in _footsteps:
+		_footsteps.enabled = value
 
 
 func is_depth_mode() -> bool:

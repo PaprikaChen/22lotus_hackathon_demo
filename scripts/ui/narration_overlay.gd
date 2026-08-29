@@ -29,6 +29,9 @@ signal session_finished
 ## 白幕上刻意用小字：整块白底已经够抢眼，字再大就压不住。
 @export var font: Font = null
 @export var font_size: int = 22
+## 正文对齐。信件这类长段落左对齐更好读；旁白保持居中。
+## 只作用于正文——说话人和推进提示始终居中。
+@export var text_alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_CENTER
 @export var speaker_font_size: int = 17
 ## 白幕整体进出。
 @export var fade_in_duration: float = 0.35
@@ -126,6 +129,7 @@ func _build() -> void:
 	_column.add_child(_speaker_label)
 
 	_label = _make_label("TextLabel", font_size, text_color)
+	_label.horizontal_alignment = text_alignment
 	_column.add_child(_label)
 
 	# 立绘悬在白幕右侧，正文列靠左侧留白避让，二者互不挤压。

@@ -1,0 +1,83 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2289)
+[godot_ai game_helper] registered mcp capture (debugger active=false, logger=false)
+WARNING: SaveManager: 打不开全局存储 user://gallery.json (err 12)
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+[MCPRuntimeServer] port: scanning 6570-6585 (default)
+[MCPRuntimeServer] listening on 127.0.0.1:6570
+WARNING: [MCPRegistry] cannot write entry C:\Users\lenovo\AppData\Roaming/godot-mcp-toolkit/entries/64e04be1e62e.runtime.json.tmp (err 12)
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+WARNING: [MCPRegistry] failed to acquire lock after 10 retries; proceeding anyway
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+WARNING: [MCPRegistry] cannot write C:\Users\lenovo\AppData\Roaming/godot-mcp-toolkit/projects.json.tmp (err 12)
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+[MCPRegistry] runtime port 6570 registered for d:/22lotus
+[TEST:interior_02] --- start ---
+[TEST:interior_02] PASS  集中配置恰好有 10 幕
+[TEST:interior_02] PASS  从第 1 幕开始
+[TEST:interior_02] PASS  本关禁跳
+[TEST:interior_02] PASS  本关禁用 DreamGap
+[TEST:interior_02] PASS  本关禁用交互检测
+[TEST:interior_02] PASS  middle < Player < front
+[TEST:interior_02] PASS  boat 位于 Player 脚下层
+[TEST:interior_02] PASS  第 1 幕显示 boat
+[TEST:interior_02] PASS  第 1 幕不显示 dad
+[TEST:interior_02] PASS  第 1 幕使用 mom1
+[TEST:interior_02] PASS  第 1 幕 player_scale=0.70
+[TEST:interior_02] PASS  第 1 幕右上字幕正确
+[TEST:interior_02] PASS  进入右侧出口自动且只切到第 2 幕（实际 2）
+[TEST:interior_02] PASS  离开第 1 幕后 boat 已清理
+[TEST:interior_02] PASS  第 3 幕 Player 素材正确
+[TEST:interior_02] PASS  第 3 幕 dad 显示规则正确
+[TEST:interior_02] PASS  第 3 幕字幕随配置切换
+[TEST:interior_02] PASS  第 3 幕只引用当前 middle
+[TEST:interior_02] PASS  第 3 幕不再引用上一幕 middle
+[TEST:interior_02] PASS  第 4 幕 Player 素材正确
+[TEST:interior_02] PASS  第 4 幕 dad 显示规则正确
+[TEST:interior_02] PASS  第 4 幕字幕随配置切换
+[TEST:interior_02] PASS  第 4 幕只引用当前 middle
+[TEST:interior_02] PASS  第 4 幕不再引用上一幕 middle
+[TEST:interior_02] PASS  Player 向左转身时 dad 同步转身
+[TEST:interior_02] PASS  Player 移动时 dad 同步摇晃
+[TEST:interior_02] PASS  Player 向右转身时 dad 同步转身
+[TEST:interior_02] PASS  第 5 幕 Player 素材正确
+[TEST:interior_02] PASS  第 5 幕 dad 显示规则正确
+[TEST:interior_02] PASS  第 5 幕字幕随配置切换
+[TEST:interior_02] PASS  第 5 幕只引用当前 middle
+[TEST:interior_02] PASS  第 5 幕不再引用上一幕 middle
+[TEST:interior_02] PASS  第 6 幕 Player 素材正确
+[TEST:interior_02] PASS  第 6 幕 dad 显示规则正确
+[TEST:interior_02] PASS  第 6 幕字幕随配置切换
+[TEST:interior_02] PASS  第 6 幕只引用当前 middle
+[TEST:interior_02] PASS  第 6 幕不再引用上一幕 middle
+[TEST:interior_02] PASS  第 7 幕 Player 素材正确
+[TEST:interior_02] PASS  第 7 幕 dad 显示规则正确
+[TEST:interior_02] PASS  第 7 幕字幕随配置切换
+[TEST:interior_02] PASS  第 7 幕只引用当前 middle
+[TEST:interior_02] PASS  第 7 幕不再引用上一幕 middle
+[TEST:interior_02] PASS  第 8 幕 Player 素材正确
+[TEST:interior_02] PASS  第 8 幕 dad 显示规则正确
+[TEST:interior_02] PASS  第 8 幕字幕随配置切换
+[TEST:interior_02] PASS  第 8 幕只引用当前 middle
+[TEST:interior_02] PASS  第 8 幕不再引用上一幕 middle
+[TEST:interior_02] PASS  第 9 幕 Player 素材正确
+[TEST:interior_02] PASS  第 9 幕 dad 显示规则正确
+[TEST:interior_02] PASS  第 9 幕字幕随配置切换
+[TEST:interior_02] PASS  第 9 幕只引用当前 middle
+[TEST:interior_02] PASS  第 9 幕不再引用上一幕 middle
+[TEST:interior_02] PASS  第 10 幕 Player 素材正确
+[TEST:interior_02] PASS  第 10 幕 dad 显示规则正确
+[TEST:interior_02] PASS  第 10 幕字幕随配置切换
+[TEST:interior_02] PASS  第 10 幕只引用当前 middle
+[TEST:interior_02] PASS  第 10 幕不再引用上一幕 middle
+[TEST:interior_02] PASS  可连续推进到第 10 幕
+[TEST:interior_02] PASS  第 10 幕使用 mom2
+[TEST:interior_02] PASS  第 10 幕出生在画面中央
+[TEST:interior_02] PASS  第 10 幕没有下一幕出口
+[TEST:interior_02] PASS  第 10 幕用独立来源锁住 Player
+[TEST:interior_02] PASS  第 10 幕按移动键也完全不动
+[TEST:interior_02] PASS  第 10 幕按 Space 会完整播放终幕名单
+[TEST:interior_02] PASS  名单结束后显示“谢谢体验！”
+[TEST:interior_02] --- done: 65 passed, 0 failed ---

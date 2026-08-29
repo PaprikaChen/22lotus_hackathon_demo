@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c5ngurk56u3k0"
+path="res://.godot/imported/12她说，不能老在梦里待着。.mp3-d70a5d98e750423233ff8e9c42d1e00b.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/music/young liniang/12她说，不能老在梦里待着。.mp3"
+dest_files=["res://.godot/imported/12她说，不能老在梦里待着。.mp3-d70a5d98e750423233ff8e9c42d1e00b.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

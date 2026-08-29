@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bxg3kv7j47ig"
+path="res://.godot/imported/05她量我有多高，陪我骑马 还讲江州的雨，岷山的雪.mp3-224e1f1dfbcbd63ba22eb7e20f884f66.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/music/young liniang/05她量我有多高，陪我骑马 还讲江州的雨，岷山的雪.mp3"
+dest_files=["res://.godot/imported/05她量我有多高，陪我骑马 还讲江州的雨，岷山的雪.mp3-224e1f1dfbcbd63ba22eb7e20f884f66.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

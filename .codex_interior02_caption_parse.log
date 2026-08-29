@@ -1,0 +1,22 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2289)
+[godot_ai game_helper] registered mcp capture (debugger active=false, logger=false)
+WARNING: SaveManager: 打不开全局存储 user://gallery.json (err 12)
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+[MCPRuntimeServer] port: scanning 6570-6585 (default)
+[MCPRuntimeServer] listening on 127.0.0.1:6571
+WARNING: [MCPRegistry] cannot write entry C:\Users\lenovo\AppData\Roaming/godot-mcp-toolkit/entries/64e04be1e62e.runtime.json.tmp (err 12)
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+WARNING: [MCPRegistry] failed to acquire lock after 10 retries; proceeding anyway
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+WARNING: [MCPRegistry] cannot write C:\Users\lenovo\AppData\Roaming/godot-mcp-toolkit/projects.json.tmp (err 12)
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+[MCPRegistry] runtime port 6571 registered for d:/22lotus
+WARNING: [MCPRegistry] failed to acquire lock after 10 retries; proceeding anyway
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+WARNING: [MCPRegistry] cannot write C:\Users\lenovo\AppData\Roaming/godot-mcp-toolkit/projects.json.tmp (err 12)
+   at: push_warning (core/variant/variant_utility.cpp:1118)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2378)

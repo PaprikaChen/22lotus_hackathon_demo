@@ -16,7 +16,7 @@
 [ext_resource type="Texture2D" uid="uid://cryo57emvmte6" path="res://assets/art/sprites/interactables/courtyard_02/flower.png" id="20"]
 [ext_resource type="Script" uid="uid://1ae1yvf4cf7" path="res://scripts/components/flower_rig.gd" id="21"]
 [ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="22"]
-[ext_resource type="Texture2D" uid="uid://grj4r7ke8kfc" path="res://assets/art/sprites/interactables/courtyard_01/paper_note_placeholder.png" id="23"]
+[ext_resource type="Texture2D" uid="uid://dcr2a11i2js6w" path="res://assets/art/sprites/interactables/courtyard_02/note.png" id="23"]
 [ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="24"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
@@ -259,7 +259,7 @@ shape = SubResource("ExitShape")
 [node name="Cutscenes" type="Node" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("2")]
-move_speed = 1100.0
+move_speed = 300.0
 
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")
@@ -295,21 +295,16 @@ mouse_filter = 2
 color = Color(0, 0, 0, 0.5)
 
 [node name="PaperNote" type="TextureRect" parent="PaperOverlay/Root"]
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.42
-anchor_right = 0.5
-anchor_bottom = 0.42
-offset_left = -80.0
-offset_top = -120.0
-offset_right = 80.0
-offset_bottom = 120.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("23")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 3
 
 [node name="UI" type="CanvasLayer" parent="."]
 

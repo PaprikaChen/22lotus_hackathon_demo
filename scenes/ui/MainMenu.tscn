@@ -1,6 +1,13 @@
-[gd_scene load_steps=2 format=3 uid="uid://b786yxjug3j78"]
+[gd_scene load_steps=8 format=3 uid="uid://b786yxjug3j78"]
 
 [ext_resource type="Script" uid="uid://bmabfh1t4f2vd" path="res://scenes/ui/main_menu.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://dvkgprdgltvdf" path="res://assets/art/sprites/ui/beginpage/beginpage_background.png" id="2_background"]
+[ext_resource type="Texture2D" uid="uid://bmp5o8rirekgt" path="res://assets/art/sprites/ui/beginpage/logo.png" id="3_logo"]
+[ext_resource type="Texture2D" uid="uid://bm1ccog81626b" path="res://assets/art/sprites/ui/beginpage/newgame.png" id="4_newgame"]
+[ext_resource type="Texture2D" uid="uid://r6dhtqtyle0" path="res://assets/art/sprites/ui/beginpage/read.png" id="5_read"]
+[ext_resource type="Texture2D" uid="uid://cq46o3rj3hk5g" path="res://assets/art/sprites/ui/beginpage/exit.png" id="6_exit"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_button"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -11,54 +18,137 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 
-[node name="Backdrop" type="ColorRect" parent="."]
+[node name="BlackBackdrop" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.07, 0.07, 0.1, 1)
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
-layout_mode = 2
-theme_override_constants/separation = 14
+[node name="Logo" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3_logo")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="TitleLabel" type="Label" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.9, 0.86, 1)
-theme_override_font_sizes/font_size = 34
-text = "二十二莲境"
-horizontal_alignment = 1
+[node name="OptionArt" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 24)
-layout_mode = 2
+[node name="NewGame" type="TextureRect" parent="OptionArt"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("4_newgame")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="StartNewGameButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(220, 40)
-layout_mode = 2
-text = "新游戏"
+[node name="LoadGame" type="TextureRect" parent="OptionArt"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_read")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="LoadGameButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(220, 40)
-layout_mode = 2
-text = "读取存档"
+[node name="Exit" type="TextureRect" parent="OptionArt"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_exit")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="GalleryButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(220, 40)
-layout_mode = 2
-text = "画廊"
+[node name="MenuButtons" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="ExitButton" type="Button" parent="CenterContainer/VBoxContainer"]
-custom_minimum_size = Vector2(220, 40)
-layout_mode = 2
-text = "退出"
+[node name="StartNewGameButton" type="Button" parent="MenuButtons"]
+layout_mode = 0
+offset_left = 762.0
+offset_top = 120.0
+offset_right = 840.0
+offset_bottom = 470.0
+focus_neighbor_right = NodePath("../LoadGameButton")
+focus_neighbor_bottom = NodePath("../LoadGameButton")
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_button")
+
+[node name="LoadGameButton" type="Button" parent="MenuButtons"]
+layout_mode = 0
+offset_left = 878.0
+offset_top = 235.0
+offset_right = 968.0
+offset_bottom = 635.0
+focus_neighbor_left = NodePath("../StartNewGameButton")
+focus_neighbor_top = NodePath("../StartNewGameButton")
+focus_neighbor_right = NodePath("../ExitButton")
+focus_neighbor_bottom = NodePath("../ExitButton")
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_button")
+
+[node name="ExitButton" type="Button" parent="MenuButtons"]
+layout_mode = 0
+offset_left = 1056.0
+offset_top = 205.0
+offset_right = 1138.0
+offset_bottom = 560.0
+focus_neighbor_left = NodePath("../LoadGameButton")
+focus_neighbor_top = NodePath("../LoadGameButton")
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_button")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_button")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_button")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_button")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_button")

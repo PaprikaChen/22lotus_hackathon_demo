@@ -13,6 +13,7 @@ signal level_started
 signal level_completed
 
 const PAUSE_MENU_SCENE: PackedScene = preload("res://scenes/ui/pause_menu.tscn")
+const CONTROL_HINT_SCENE: PackedScene = preload("res://scenes/ui/control_hint.tscn")
 
 ## Stable id for save/progress purposes. Persisted ids must never be renamed.
 @export var level_id: StringName = &""
@@ -26,6 +27,10 @@ const PAUSE_MENU_SCENE: PackedScene = preload("res://scenes/ui/pause_menu.tscn")
 ## 下发给玩家。默认 true，所有既有关卡行为不变。
 @export var player_can_jump: bool = true
 
+## 本关是否播放丽娘的脚步声。和 player_can_jump 一样属于关卡配置。
+## 默认 true；丽娘不是"走"在地上的关卡（例如 interior_02 站在船上）设 false。
+@export var player_footsteps: bool = true
+
 ## The player node in this level (optional — UI-only scenes leave it unset).
 @export var player_path: NodePath
 
@@ -35,6 +40,7 @@ const PAUSE_MENU_SCENE: PackedScene = preload("res://scenes/ui/pause_menu.tscn")
 
 var _player: Node2D = null
 var _pause_menu: PauseMenu = null
+var _control_hint: CanvasLayer = null
 
 
 func _ready() -> void:
@@ -45,6 +51,7 @@ func _ready() -> void:
 	_apply_player_abilities()
 	_place_player()
 	_install_pause_menu()
+	_install_control_hint()
 	on_level_started()
 	level_started.emit()
 
@@ -88,6 +95,8 @@ func _apply_movement_mode() -> void:
 func _apply_player_abilities() -> void:
 	if _player != null and &"jump_enabled" in _player:
 		_player.jump_enabled = player_can_jump
+	if _player != null and _player.has_method("set_footsteps_enabled"):
+		_player.set_footsteps_enabled(player_footsteps)
 
 
 func _place_player() -> void:
@@ -125,3 +134,15 @@ func _install_pause_menu() -> void:
 		return
 	_pause_menu.set_player(_player)
 	add_child(_pause_menu)
+
+
+## 与暂停菜单遵循同一安装边界：只显示在作为 current_scene 运行的关卡中，
+## 测试把关卡实例化为子节点时不重复添加操作提示。
+func _install_control_hint() -> void:
+	if get_tree().current_scene != self:
+		return
+	_control_hint = CONTROL_HINT_SCENE.instantiate() as CanvasLayer
+	if _control_hint == null:
+		push_error("LevelBase: 无法实例化操作提示。")
+		return
+	add_child(_control_hint)

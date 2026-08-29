@@ -29,6 +29,20 @@ signal finished
 ## 播完去哪。留空则用 SaveManager.NEW_GAME_SCENE_PATH。
 @export_file("*.tscn") var next_scene: String = ""
 
+@export_group("Audio")
+## 前情提要的旁白配音。整页共用一条音轨——它跟着**这一页**走，不按段切，
+## 玩家提前按 Space 就随黑幕一起淡出。
+@export var narration_path: NodePath = ^"Narration"
+## 旁白淡出时长。和文字淡出同一拍，别让声音拖在黑屏之后。
+@export var narration_fade_out: float = 0.6
+## 切进关卡那一刻的音效（丽娘落地摔伤）。播在挂到 root 上的临时节点上，
+## 这样它能活过 change_scene——放在本场景里会跟着场景一起被 free，
+## 声音刚起就断。和黑幕用的是同一条思路。
+@export var enter_sfx: AudioStream = null
+@export var enter_sfx_volume_db: float = 0.0
+
+@onready var _narration: AudioStreamPlayer = 	get_node_or_null(narration_path) as AudioStreamPlayer
+
 @onready var _text: Label = $CenterContainer/TextLabel
 @onready var _hint: Label = $ContinueHint
 
@@ -43,6 +57,8 @@ func _ready() -> void:
 	_text.text = ""
 	_text.modulate.a = 0.0
 	_hint.modulate.a = 0.0
+	if _narration != null and _narration.stream != null:
+		_narration.play()
 	if segments.is_empty():
 		push_warning("PrologueScreen: segments 为空，直接进入关卡。")
 		_finish()
@@ -118,6 +134,7 @@ func _finish() -> void:
 		return
 	_done = true
 	_hint.modulate.a = 0.0
+	_fade_out_narration()
 	finished.emit()
 	var target := next_scene if not next_scene.is_empty() else SaveManager.NEW_GAME_SCENE_PATH
 	# 被当作子场景实例化（测试）时不切场景，只发 finished。
@@ -145,8 +162,33 @@ func _enter_scene(target: String) -> void:
 	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(veil)
 	get_tree().root.add_child(layer)
+	_spawn_enter_sfx()
 	get_tree().change_scene_to_file(target)
 	var tween := veil.create_tween()
 	tween.tween_interval(0.1)
 	tween.tween_property(veil, ^"modulate:a", 0.0, fade_in_duration)
 	tween.tween_callback(layer.queue_free)
+
+
+func _fade_out_narration() -> void:
+	if _narration == null or not _narration.playing:
+		return
+	if narration_fade_out <= 0.0:
+		_narration.stop()
+		return
+	var tween := _narration.create_tween()
+	tween.tween_property(_narration, ^"volume_db", -40.0, narration_fade_out)
+	tween.tween_callback(_narration.stop)
+
+
+## 入场音效挂在 root 下的自由节点上，播完自己 free。不复用黑幕那一层：
+## 黑幕淡完就 queue_free，音效通常比它长。
+func _spawn_enter_sfx() -> void:
+	if enter_sfx == null:
+		return
+	var player := AudioStreamPlayer.new()
+	player.stream = enter_sfx
+	player.volume_db = enter_sfx_volume_db
+	player.finished.connect(player.queue_free)
+	get_tree().root.add_child(player)
+	player.play()

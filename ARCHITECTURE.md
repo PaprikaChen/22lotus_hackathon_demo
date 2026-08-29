@@ -1,8 +1,9 @@
 # ARCHITECTURE.md — 《二十二莲境》架构说明
 
 本文件描述项目**当前实际是怎么搭起来的**：有哪些层、谁拥有什么状态、
-数据往哪个方向流、以及为什么这么分。核对时间 **2026-08-26**，依据是
-仓库里全部 46 个 `.gd` 与 21 个 `.tscn` 的真实内容，不是设计意图。
+数据往哪个方向流、以及为什么这么分。核对时间 **2026-08-30**，依据是
+仓库里全部 96 个 `.gd` 与 42 个 `.tscn`（不含 `addons/`）的真实内容，
+不是设计意图。
 
 与其他三份文档的分工：
 
@@ -11,15 +12,28 @@
 | `CLAUDE.md` | 项目是什么、目录约定、Agent 能独立决定什么 |
 | `AGENTS.md` | 改代码时**不许**做什么（约束清单、复用指引） |
 | **`ARCHITECTURE.md`（本文）** | 系统之间**如何咬合**、状态归谁、数据怎么流 |
-| `README.md` | 上手与运行方式（**已严重过时，见第 10 节**） |
+| `README.md` | 上手与运行、已实现内容与亮点（2026-08-30 已重写） |
+| `NARRATIVE_LAYER_DESIGN.md` | 叙事层怎么写（Director / Cutscene / Flag 模板） |
 
 ---
 
 ## 0. 一分钟概览
 
-一个 Godot 4.4 的 2D 横版游戏，核心是**四个互不知道对方存在的全局系统**
-（时间 / 存档 / 剧情 Flag / 记忆信物），加上**一条关卡生命周期**
-（LevelBase）和**一套交互总线**（Interactable + InteractionDetector）。
+一个 Godot 4.4 的 2D 横版游戏，由六块拼起来：
+
+1. **五个互不知道对方存在的全局系统**（存档 / 时间 / 剧情 Flag / 记忆信物 /
+   CG 画廊），全是 Autoload。
+2. **一条关卡生命周期**（`LevelBase`：重置 → 清 flag → 下发关卡配置 → 放人 →
+   挂暂停菜单 → 发 `level_started`）。
+3. **一套交互总线**（`Interactable` + 玩家身上唯一的 `InteractionDetector`）。
+4. **一层叙事编排**（每关一个 `StoryDirector`，剧情因果全部汇聚在那里）。
+5. **一套演出件**（黑边 / 淡入淡出 / 白幕文字 / 定格 CG / 失焦，只管画面）。
+6. **两套集中配置的机关**（三重旋锁、十幕皮影），数值全在
+   `scripts/globals/*_config.gd`。
+
+一个容易误判的现状：**目前所有正式关卡都写着 `player_can_jump = false`**，
+玩法是行走探索 + 调查 + 机关，不是平台跳跃。跳跃与 DreamGap 的代码都还在，
+由关卡按需开启（见第 3 节的关卡配置下发）。
 
 三个反复出现的设计手法贯穿全项目：
 
@@ -38,27 +52,43 @@
 ┌─────────────────────────────────────────────────────────────┐
 │ 全局层 Autoload（常驻，不随场景销毁）                        │
 │   SaveManager   WorldTimeManager   StoryFlagManager          │
-│                 MemoryManager                                │
+│   MemoryManager GalleryManager                               │
 └─────────────────────────────────────────────────────────────┘
         ▲ 调用 API                    │ 发 Signal
         │                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 场景层 LevelBase 子类（关卡 / 测试房，一次一个）             │
-│   old_courtyard  main_house_interior  tests/*                │
-│   持有：Player、Camera2D、UI、Props、AreaFlowController      │
+│   courtyard_01..04   courtyard_03_incense_memory             │
+│   interior_01   interior_02   old_courtyard   tests/*        │
+│   持有：Player、FollowCamera2D、Backdrop、UI、Props          │
 └─────────────────────────────────────────────────────────────┘
-        │ 组合                          ▲ Signal
+        │ 每关一个                      ▲ Signal
+        ▼                               │
+┌─────────────────────────────────────────────────────────────┐
+│ 叙事编排层 StoryDirector 子类（关卡根的普通子节点）          │
+│   <level>_story_director.gd  ← 剧情因果只写在这里            │
+└─────────────────────────────────────────────────────────────┘
+        │ 组合 / 调用                   ▲ Signal
         ▼                               │
 ┌─────────────────────────────────────────────────────────────┐
 │ 组件层（挂在节点上的可复用零件）                             │
 │   Player + DreamGapAbility + InteractionDetector             │
 │   Interactable 子类   DreamAffectedComponent                 │
+│   Backdrop / FollowCamera2D / ArchBridge / ColorZoneX        │
 │   ExplorationArea     MovingPlatform                         │
+└─────────────────────────────────────────────────────────────┘
+        │ 只被 Director 驱动            ▲ signal finished
+        ▼                               │
+┌─────────────────────────────────────────────────────────────┐
+│ 演出件层（CanvasLayer，只管画面）                            │
+│   FrameBars(50)  DialogueBox(60)  RotaryLockUI(70)           │
+│   NarrationOverlay(80)  CGSequence  FocusBlur                │
+│   ScreenFade(95)                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**依赖方向是严格单向的**：组件和关卡可以调 Autoload，Autoload 绝不反向
-持有节点引用。唯一的反向通道是 Signal。这条规则是整个架构能保持简单的
+**依赖方向是严格单向的**：下面每一层都可以调 Autoload，Autoload 绝不反向
+持有节点引用；演出件与组件也不许反过来读剧情状态。唯一的反向通道是 Signal。这条规则是整个架构能保持简单的
 根本原因——任何一个关卡被删掉，全局层不会有一行代码需要改。
 
 ---
@@ -67,7 +97,8 @@
 
 注册顺序（`project.godot`）：`SaveManager` → `WorldTimeManager` →
 `StoryFlagManager` → `_mcp_game_helper`（插件） → `MemoryManager` →
-`GalleryManager`。
+`GalleryManager` → `MCPRuntimeServer`（插件）。两个插件 Autoload 属于编辑器
+MCP 基础设施，不参与游戏逻辑。
 
 | Autoload | 拥有 | **不**拥有 | 落盘位置 |
 | --- | --- | --- | --- |
@@ -126,39 +157,77 @@ WorldTimeManager.reset_state()   # 读档绝不带入 ACTIVE 的 DreamGap
 
 ## 3. 场景层：关卡生命周期
 
-`LevelBase`（`scenes/levels/level_base.gd`，95 行）是所有关卡和测试房的
-根脚本。它的 `_ready()` 固定做五件事，顺序不能换：
+`LevelBase`（`scenes/levels/level_base.gd`，127 行）是所有关卡和测试房的
+根脚本。它的 `_ready()` 固定做这几件事，顺序不能换：
 
 ```
 1. WorldTimeManager.reset_state()      清掉跨场景残留的 DreamGap
 2. StoryFlagManager.clear_session()    清掉关卡局部 Flag
 3. 解析 player_path
 4. _apply_movement_mode()              把关卡声明的移动模式下发给玩家
-5. _place_player()                     存档位置优先，否则用 SpawnPoint
+5. _apply_player_abilities()           把 player_can_jump 下发给玩家
+6. _place_player()                     存档位置优先，否则用 SpawnPoint
    └─ 顺带 clear_input_locks()         防止输入锁跨场景残留
+7. _install_pause_menu()               仅当自己就是 current_scene 时才挂
+8. on_level_started() → level_started.emit()
 ```
 
-第 4 步是关键设计：**移动风格是关卡配置，不是玩家属性**。关卡在
-`movement_mode` 导出属性里声明 `SIDE_SCROLL` 或 `DEPTH_2_5D`，LevelBase 在
-放人之前告诉玩家。玩家脚本里没有、也不允许有 `if 场景名 == ...`。
+第 4、5 步是关键设计：**移动风格与能力开关都是关卡配置，不是玩家属性**。
+关卡在 `movement_mode` 里声明 `SIDE_SCROLL` 或 `DEPTH_2_5D`，在
+`player_can_jump` 里声明本关能不能跳，LevelBase 在放人之前告诉玩家。
+玩家脚本里没有、也不允许有 `if 场景名 == ...`。目前所有正式关卡
+`player_can_jump = false`。
+
+第 7 步的条件判断是刻意的：测试常把关卡当子场景实例化，那里不应额外生成
+全屏 UI 或接管 Esc，所以只有作为 `current_scene` 运行的关卡才挂暂停菜单。
 
 第 5 步的存档恢复有个条件：只有当存档的 `current_scene` 正好指向本场景时
 才用存档坐标，否则用关卡自己的出生点。这样从 A 关的存档进 B 关不会把人
 放到 A 关的坐标上。
 
-**子类必须调 `super._ready()`。** 目前 9 个脚本继承了 LevelBase：
+**子类必须调 `super._ready()`。** 继承 LevelBase 的脚本：
 
-- 正式关卡：`old_courtyard`、`main_house_interior`
-- 测试房：`test_player_movement`、`test_dream_gap`、`test_interaction`、
-  `test_memory_box`、`test_integration`、`whitebox_25d`、`bg_pacing_lab`
+- 正式关卡：`courtyard_level`（`courtyard_01` / `02` / `03` / `04` 共用一份）、
+  `courtyard_03_incense_memory_level`、`interior_01`、`interior_02`、
+  `old_courtyard`、`main_house_interior`
+- 测试房：`test_player_movement`、`test_player_visual`、`test_dream_gap`、
+  `test_interaction`、`test_memory_box`、`test_integration`、`test_courtyard_01`、
+  `test_interior_02`、`whitebox_25d`、`bg_pacing_lab`
+
+**关卡脚本共用的判据**：关卡侧机制一样、只有背景 / Props / Director 不同的关，
+共用一个关卡脚本（四个 courtyard 就是这样，见 `courtyard_level.gd`）；
+机制本身不同的关（`interior_02` 的换幕流程）才写自己的脚本。
 
 **两个旧关卡没有迁移**：`test_level.gd`、`dream_platforming_test.gd` 仍是
 裸 `Node2D`，因此不会重置 DreamGap、不清 session flag、不清输入锁。
 （见第 10 节技术债。）
 
-### 关卡内的多区域流转
+### 关卡内的横向推进：两种做法
 
-`old_courtyard` 演示了"一个场景内多屏探索"的做法，**不切场景**：
+**当前正式关卡（courtyard_01..04 / interior_01）用的是长卷 + 相机闸门**，
+一个场景就是一整条横向长卷，不分屏、不传送：
+
+```
+Backdrop（@tool）        按「世界高度」反推 scale，长卷有多宽就多宽
+   │ texture.get_size() * scale
+   ▼
+FollowCamera2D          bounds_source_path 读上面的尺寸当关卡边界
+   ├─ left_gate_x / right_gate_x      临时把可视范围掐在某个 x（剧情闸门）
+   ├─ arm_left_gate_latch(x)          「待落闸门」：玩家走过去之后才落
+   └─ slide_left_gate_open(duration)  解锁时把闸门滑开（有过渡，不是瞬移）
+```
+
+为什么背景要声明世界高度而不是写死 scale：Godot 的导入器会把超大图按比例
+缩掉以适应上限，所以「贴图像素 → 世界像素」的倍率取决于导入结果。写死
+scale 会在换图或改导入设置时**静默错位**。
+
+配套的挡路手段有三类，各有分工：`PassageGate`（交互一次清掉的障碍）、
+`BacktrackTrap`（走进去就回不了头，往西越界就黑幕送回）、
+`StoryDoor`（Flag / 信物门槛）。相机闸门永远由 Director 控制——
+"镜头能看多远"是关卡编排的事，组件不自己决定。
+
+**另一种做法：一个场景内多屏流转（`old_courtyard`，早期实现，仍可参考）**，
+同样不切场景：
 
 ```
 ExplorationArea（局部坐标 + 相机边界，默认一屏 1152px）
@@ -223,16 +292,28 @@ E 键调 `interact()`。输入锁激活期间不触发。
 
 **玩家不知道对象是门还是信物**——结果由交互物自己决定。目前的子类：
 
-| 脚本 | 作用 | 位置 |
-| --- | --- | --- |
-| `text_interactable.gd` | 纯文本调查物，发 `text_requested` | `scripts/components/` |
-| `flag_pickup.gd` | 拾取 → 写 StoryFlag | `scripts/components/` |
-| `level_exit.gd` | 通往下一关的出口（门槛同上；切场景由关卡做） | `scripts/components/` |
-| `follow_camera.gd` | 横版跟随相机，靠 Camera2D 内建 limit 实现"贴边停住" | `scripts/components/` |
-| `story_door.gd` | 门：Flag 门槛 + 信物门槛，可被 Director 直接开关 | `scripts/components/` |
-| `memory_pickup.gd` | 拾取 / 推进梦奁信物 | `scripts/components/` |
-| `save_point.gd` | 存档点 | `scripts/components/` |
-| `test_interactable.gd` | 交互测试用计数器（仅测试） | `tests/helpers/` |
+| 脚本（均在 `scripts/components/`） | 作用 |
+| --- | --- |
+| `text_interactable.gd` | 纯文本调查物，发 `text_requested` |
+| `animated_text_interactable.gd` | 上面那个 + 交互时的局部表现（摇摆 / 附图），仍不碰剧情 |
+| `choice_text_interactable.gd` | 多选调查点：放文字 → 让玩家选 → 放对应文字，纯阅读分支 |
+| `passage_gate.gd` | 挡路障碍（杂草 / 瓦砾）：交互一次清掉，发 `cleared` |
+| `sequence_puzzle.gd` + `_item.gd` | 「按正确顺序点物品」的裁判；答案 = Inspector 里的数组顺序 |
+| `flag_pickup.gd` | 拾取 → 写 StoryFlag |
+| `memory_pickup.gd` | 拾取 / 推进梦奁信物 |
+| `story_door.gd` | 门：Flag 门槛 + 信物门槛，可被 Director 直接开关 |
+| `level_exit.gd` | 通往下一关的出口（门槛同上；切场景由关卡做） |
+| `save_point.gd` | 存档点 |
+| `backtrack_trap.gd` | 返回封锁 + 黑幕重置（不是 Interactable，靠世界 x 触发） |
+| `follow_camera.gd` | 横版跟随相机 + 左右闸门，靠 Camera2D 内建 limit 实现"贴边停住" |
+| `tests/helpers/test_interactable.gd` | 交互测试用计数器（仅测试） |
+
+除交互物之外，组件层还有一批**纯表现件**，它们只改自己的变换或材质，
+不读输入、不碰剧情、不碰碰撞：`floating_visual`（上下漂浮）、
+`brightness_pulse`（双正弦亮度脉冲）、`eye_follow_visual`（眼神跟随）、
+`flower_rig`（Skeleton2D 花枝摇曳）、`shadow_puppet_actor`（皮影玩家表现）、
+`color_zone_x`（按世界 X 分段去色 / 上色）、`arch_bridge`（@tool 拱桥地形，
+运行时按跨度与拱高生成弧面碰撞）。
 
 正式关卡用的交互物一律住在 `scripts/components/`；`tests/helpers/` 只剩
 纯测试用的东西，测试场景反过来引用正式组件。
@@ -245,8 +326,10 @@ E 键调 `interact()`。输入锁激活期间不触发。
   变成两份各自持久化的状态。
 - 两者都填 = 都要满足。
 
-文本统一走底部 `dialogue_box.tscn`（分页、空格推进、显示期间锁玩家）。
-**禁止各处自画浮动文字**。
+文本统一走底部 `dialogue_box.tscn`（分页、空格推进、显示期间锁玩家，
+有名字的说话人走带立绘的对话框版式，旁白走下边框字幕版式；还负责
+`choice_requested` 的选项）。**禁止各处自画浮动文字**。组件只发信号，
+关卡脚本把信号接到那唯一一个对话框上。
 
 ### 叙事编排层：StoryDirector
 
@@ -288,6 +371,42 @@ Interactable / Cutscene / StoryNPC / DialogueBox
 范例：`scenes/levels/old_courtyard_story_director.gd`（药圃 + 侧窗 →
 母亲幻觉 → 丫鬟入场 → 对话 → 侧窗解锁成主屋入口）。"读完文字后再做某事"
 的 pending 标记统一收在 Director 里，关卡脚本不再持有剧情判断。
+
+### 演出件：只管画面
+
+叙事关卡的"演出"被切成一组各自独立的 `CanvasLayer`，**全部只管画面**：
+不锁玩家、不写 Flag、不切场景、不判断剧情。编排权在 Director。
+
+| 演出件 | 层号 | 画什么 | 用在哪 |
+| --- | --- | --- | --- |
+| `FrameBars`（@tool） | 50 | 影院黑边。设计分辨率高度从 648 提到 828，多出的上下各 90px 填黑；游戏画面一寸没动 | 全部叙事关卡 |
+| `DialogueBox` | 60 | 底部字幕 / 立绘对话框 / 选项 | 全部 |
+| `RotaryLockUI` | 70 | 三重旋锁界面 + 判定 | courtyard_01 |
+| `NarrationOverlay` | 80 | 白幕居中逐句文字 | 香炉记忆、interior_01 |
+| `CGSequence` | 默认(1) | 定格 CG + 下方字幕，空格推进；靠 ScreenFade 先遮黑再淡回来露出 | interior_01 |
+| `FocusBlur` | 49 | 全屏短暂失焦（shader 模糊）；刻意压在黑边之下，只糊游戏画面 | courtyard_04、interior_01 |
+| `ScreenFade` | 95 | 淡入淡出（黑幕 / 白幕），必须能盖住上面所有 | 全部 |
+
+层号顺序是硬约定：切场景的幕布永远要能盖住白幕文字，白幕文字要能盖住
+对话框和锁界面。**新增演出件时先想清楚它该压在谁上面。**
+
+为什么不让 `NarrationOverlay` 复用 `DialogueBox`：一个是「白底、居中、
+一句一换」的记忆关演出，一个是「下边框字幕 + 立绘」的正常关卡对话。
+两者是并列的两种表现件，不该互相迁就。`CGSequence` 同理——那是图为主。
+
+### 机关的数值集中化
+
+两套多组件协作的机关，全部数值收在一个 `RefCounted` 常量类里，
+场景与各组件都从那里读，**禁止在别处再抄一份数字**：
+
+| 配置类 | 覆盖 | 谁来执行 |
+| --- | --- | --- |
+| `InnerGateLockConfig` | courtyard_01 尾部三重旋锁：触发区间、黑幕重置坐标、档位手感、谜底顺序、解锁 Flag | `backtrack_trap.gd` / `rotary_lock_ui.gd` / `rotary_lock_ring.gd` / `courtyard_01_story_director.gd` |
+| `ShadowPlayConfig` | interior_02 十幕皮影：每幕贴图路径、舞台尺寸、出口位置、逐幕参数 | `interior_02.gd` |
+
+`ShadowPlayConfig` 刻意用 `String` 路径而不是 `preload`：十幕贴图不该在进关时
+同时常驻。`interior_02.gd` 换幕时先清空所有旧 `Texture` 引用，再用
+`CACHE_MODE_IGNORE` 加载下一幕。
 
 ### Flag 命名与分层
 
@@ -372,10 +491,33 @@ MainMenu ─[新游戏]→ SaveSlotMenu(new) → create_new_save()
                                     PrologueScreen  ← 黑屏+居中文字，Space 逐段
                                           │
                                           ▼
-                                     courtyard_01 ──LevelExit──→ courtyard_02
+                                     courtyard_01
 MainMenu ─[读取存档]→ SaveSlotMenu(load) → load_game() → 存档里的 current_scene
 MainMenu ─[画廊]────→ GalleryScreen（不需要任何槽位）
 ```
+
+### 当前关卡链
+
+```
+courtyard_01 ─LevelExit→ courtyard_02 ─LevelExit→ courtyard_03 ─LevelExit→ courtyard_04
+                                            │                                  │
+                                  (灯笼区触发)│                          (破窗二选一)│
+                                            ▼                                  ▼
+                            courtyard_03_incense_memory            interior_01 ─→ interior_02
+                              └─ 做完写 Flag + 挂起返回对白 ─→ 白幕回 courtyard_03
+                                 （落回 RETURN_POSITION_X，右侧闸门撤除）
+```
+
+两个值得注意的编排细节：
+
+- **子关卡往返靠「挂起标记 + Flag」，不靠特殊存档字段。**
+  香炉记忆做完时写 `courtyard_03.incense_memory_finished` 和
+  `...return_pending`，回到主庭院的 Director 看到 pending 就播那句返回对白
+  并清掉标记。落点坐标写在 Director 的常量里，因为回忆是在灯笼区触发的，
+  回来后要站到能继续往前的位置，不能沿用进入时的存档坐标。
+- **`interior_02` 是唯一一个自己写关卡脚本的关**：十幕换幕要逐幕加载 / 释放
+  贴图、换玩家表现件、走黑幕过渡，这些是**关卡机制**而非剧情，所以在关卡
+  脚本里而不是 Director 里。
 
 **「前情提要只在新游戏播一次」是流程保证的，不靠 Flag。** 读档分支直接跳
 `current_scene`，而新档里写的是关卡而不是前情提要——所以在前情提要期间退出
@@ -432,21 +574,33 @@ SaveSlotMenu(mode="load") → load_game(slot)
 ## 9. 目录归位速查
 
 ```
-scripts/autoload/   4 个全局管理器            ← 常驻，不持有节点
-scripts/components/ 跨关卡复用的组件与基类     ← Interactable / DreamAffected /
-                                                ExplorationArea / AreaFlowController
-scripts/globals/    纯数据与枚举              ← MovementMode
+scripts/autoload/   5 个全局管理器            ← 常驻，不持有节点
+scripts/components/ 跨关卡复用的组件与基类     ← Interactable 子类 / DreamAffected /
+                                                Backdrop / FollowCamera2D / 纯表现件
+scripts/narrative/  叙事层基类                ← StoryDirector / Cutscene / StoryNPC
+scripts/ui/         UI 与演出件脚本            ← FrameBars / ScreenFade /
+                                                NarrationOverlay / CGSequence /
+                                                FocusBlur / RotaryLockUI / Gallery
+scripts/globals/    纯数据与枚举              ← MovementMode / InnerGateLockConfig /
+                                                ShadowPlayConfig
 scripts/memory/     Resource 定义             ← MemoryEntry / MemoryStage
+scripts/gallery/    Resource 定义             ← CGEntry
 scenes/player/      玩家及其组件
-scenes/ui/          主菜单 / 存档槽 / 对话框 / 梦奁 / Toast
-scenes/levels/      LevelBase + 正式关卡
+scenes/ui/          主菜单 / 存档槽 / 前情提要 / 暂停 / 对话框 / 梦奁 / Toast /
+                    画廊 / 旋锁 / 黑边 / 淡入淡出 / 白幕 / 失焦
+scenes/levels/      LevelBase + 正式关卡 + 每关一个 *_story_director.gd
 scenes/components/  世界对象（平台 / 敌人）
 resources/memories/ 信物静态数据 .tres（自动注册）
+resources/cg/       画廊 CG 静态数据 .tres（自动注册）
+shaders/            effects/（饱和度着色、发光描边）、ui/（失焦模糊）
 tests/              灰盒测试房 + helpers/（交互物参考实现）
 ```
 
 **判断新文件放哪**：会被两个以上关卡用到 → `scripts/components/`；
 只服务一个关卡 → 和关卡放一起；只服务测试 → `tests/`。
+**是画面还是逻辑**：只画东西的 `CanvasLayer` → `scripts/ui/`；
+挂在世界节点上的零件 → `scripts/components/`；
+只是一堆常量 → `scripts/globals/`。
 
 ---
 
@@ -469,7 +623,8 @@ tests/              灰盒测试房 + helpers/（交互物参考实现）
 ### 10.2 新游戏入口（已修复 2026-08-26）
 
 `SaveManager.NEW_GAME_SCENE_PATH` 现在指向
-`res://scenes/levels/old_courtyard.tscn`，新建游戏直接进正式第一关。
+`res://scenes/levels/courtyard_01.tscn`，新建游戏先播 `PROLOGUE_SCENE_PATH`
+（前情提要）再进正式第一关。
 
 同时修掉了一个连带的落点 bug：`create_new_save()` 会写死一份占位坐标，
 而 `LevelBase._place_player()` 只要看到 `current_scene` 对得上就用存档坐标，
@@ -505,26 +660,33 @@ LevelBase 的进关重置，且现在没有任何地方引用，属于既没迁�
 
 ### 10.7 场景切换没有统一出口
 
-8 处散落的 `change_scene_to_file()`。目前规模可控，但淡入淡出、存档写入、
-跨场景状态清理各写各的。`AGENTS.md` 已把 SceneManager 列为"尚未实现"，
-在有明确需求前不建议提前造。
+十余处散落的 `change_scene_to_file()`（关卡出口、子关卡往返、主菜单、画廊）。
+目前规模仍可控，但淡入淡出、存档写入、跨场景状态清理各写各的。
+`AGENTS.md` 已把 SceneManager 列为"尚未实现"，在有明确需求前不建议提前造。
+**如果子关卡往返再多两处，就该造了**——这是最接近临界点的一项技术债。
 
-### 10.8 两份文档已经漂移
+### 10.8 文档漂移（本轮已处理）
 
-**`README.md` 严重过时**——它停留在只有 2 个 Autoload 的阶段：没有
-StoryFlagManager、MemoryManager、Interaction、Dialogue、LevelBase、
-2.5D 模式、旧院关卡；Input Map 表缺 `interact` / `open_memory_box` /
-`move_up` / `move_down`。建议削减为纯"上手与运行"指南，架构内容指向本文件。
+`README.md` 已于 2026-08-30 重写：现在是"上手 + 已实现 + 核心玩法 + 亮点"，
+架构内容指向本文件。本文件同日核对到 courtyard_01..04 / interior_01..02。
+`AGENTS.md` 的 §0 快照同步更新。
 
-**`AGENTS.md` 局部漂移**（整体仍准确，以下三处需修）：
+后续维护纪律不变：**新增关卡不需要动本文件**（那只是 §8 的关卡链），
+只有第 11 节列出的五类改动才必须回来改架构文档。
 
-- 第 0 节"尚未实现"里仍列着"对话系统、记忆收集系统"，但两者都已实现，
-  且在同一节上文有详细描述——自相矛盾。
-- 第 0 节 Autoload 清单漏了 `MemoryManager`。
-- 第 10 节表格"新记忆收集物 = Interactable + StoryFlagManager 记录"是旧
-  写法，实际应走 `MemoryManager.unlock_memory()`；表格也缺"信物门槛的门"
-  这一行。
-- 测试场景清单缺 `test_memory_box`、`test_old_courtyard`、`bg_pacing`。
+### 10.9 音频接入尚浅
+
+`assets/audio/` 目录已建，旋锁档位 / 开锁是目前唯一接上的 SFX 事件
+（`rotary_lock_ui.gd` 里两个独立的 `AudioStreamPlayer`，无素材时安全静默）。
+BGM、环境音、脚步都还没有接入点，也还没有音频总线规划。
+
+### 10.10 关卡侧脚本开始重复
+
+`courtyard_level.gd` 已被四关共用（正确做法），但 `interior_01.gd` 的
+"把 `text_requested` / `choice_requested` / `text_dismiss_requested` 接到共用
+对话框"这段循环和 `courtyard_level.gd` 里的是同一份逻辑。
+再出现第三份就应该抽成一个"叙事关卡"基类或一个挂在关卡上的组件，
+而不是继续复制。
 
 ---
 

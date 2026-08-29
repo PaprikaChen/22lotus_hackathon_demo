@@ -1,0 +1,554 @@
+[gd_scene load_steps=53 format=3 uid="uid://b0bgx1fq0mdtw"]
+
+[ext_resource type="Script" uid="uid://bm6616met14v0" path="res://scenes/levels/interior_01.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
+[ext_resource type="Script" uid="uid://djupnfgw52n8a" path="res://scripts/components/follow_camera.gd" id="3"]
+[ext_resource type="PackedScene" uid="uid://c6xp5gugdegtg" path="res://scenes/ui/dialogue_box.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/frame_bars.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interaction_prompt.tscn" id="6"]
+[ext_resource type="Texture2D" uid="uid://dktx868pkorrr" path="res://assets/art/sprites/interactables/interior_01/bowl1.png" id="6_bowl1"]
+[ext_resource type="Texture2D" uid="uid://dfgxveuxjocc2" path="res://assets/art/sprites/interactables/interior_01/medicine.png" id="6_medicine"]
+[ext_resource type="Texture2D" uid="uid://b6k0gb8w0rfup" path="res://assets/art/sprites/interactables/interior_01/stone1.png" id="6_stone1"]
+[ext_resource type="Texture2D" uid="uid://bit2j6x7x4ux3" path="res://assets/art/sprites/interactables/interior_01/stone2.png" id="6_stone2"]
+[ext_resource type="Texture2D" uid="uid://tv7qq213bpn8" path="res://assets/art/backgrounds/middle/interior_01_middle.png" id="7"]
+[ext_resource type="Texture2D" uid="uid://beio0ji3kuskc" path="res://assets/art/backgrounds/front/interior_01_front.png" id="8"]
+[ext_resource type="Script" uid="uid://dxv77udp8tdx3" path="res://scripts/components/backdrop.gd" id="9"]
+[ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="10"]
+[ext_resource type="Script" uid="uid://g4w4it7l1y44" path="res://scenes/levels/interior_01_story_director.gd" id="11"]
+[ext_resource type="Script" uid="uid://dlypu2w4pe2h0" path="res://scripts/components/color_zone_x.gd" id="12"]
+[ext_resource type="Script" uid="uid://1fw507wwlo42" path="res://scripts/components/choice_text_interactable.gd" id="13"]
+[ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://scenes/ui/focus_blur.tscn" id="15"]
+[ext_resource type="Script" uid="uid://bpnxutdig1jct" path="res://scripts/ui/cg_sequence.gd" id="16"]
+[ext_resource type="Texture2D" uid="uid://jvthfgmuadok" path="res://assets/art/cg/定格动画1.png" id="17"]
+[ext_resource type="Texture2D" uid="uid://b4gbx7c0i585e" path="res://assets/art/cg/定格动画2.png" id="18"]
+[ext_resource type="Texture2D" uid="uid://clk6quj173400" path="res://assets/art/cg/定格动画3.png" id="19"]
+[ext_resource type="PackedScene" path="res://scenes/ui/narration_overlay.tscn" id="20"]
+[ext_resource type="Script" uid="uid://cynky25i23yb" path="res://scripts/components/interactable.gd" id="21"]
+[ext_resource type="Script" uid="uid://c51o7nugve5oc" path="res://scripts/components/sequence_puzzle_item.gd" id="22"]
+[ext_resource type="Script" uid="uid://dktndkllmswfv" path="res://scripts/components/sequence_puzzle.gd" id="23"]
+[ext_resource type="Texture2D" uid="uid://yaeeqnytf7l0" path="res://assets/art/sprites/interactables/interior_01/shelf.png" id="24"]
+[ext_resource type="Texture2D" uid="uid://8j402xn2w3a1" path="res://assets/art/sprites/interactables/interior_01/1.png" id="25"]
+[ext_resource type="Texture2D" uid="uid://bs0dc3stohar4" path="res://assets/art/sprites/interactables/interior_01/2.png" id="26"]
+[ext_resource type="Texture2D" uid="uid://lkmnny8omfff" path="res://assets/art/sprites/interactables/interior_01/3.png" id="27"]
+[ext_resource type="Texture2D" uid="uid://b5ltd7h74qda1" path="res://assets/art/sprites/interactables/interior_01/4.png" id="28"]
+[ext_resource type="Texture2D" uid="uid://ciqm6ikdm6v47" path="res://assets/art/sprites/interactables/interior_01/5.png" id="29"]
+[ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="30"]
+[ext_resource type="SpriteFrames" uid="uid://djv7pvsg4r20v" path="res://resources/sprite_frames/liniang_candle.tres" id="31"]
+[ext_resource type="AudioStream" uid="uid://dnypsudfy436b" path="res://assets/audio/music/06定格动画.mp3" id="bgm_memory"]
+[ext_resource type="Script" uid="uid://yjts2i54a6o" path="res://scripts/components/level_bgm.gd" id="bgm_script"]
+[ext_resource type="AudioStream" uid="uid://wgnemfbg7hon" path="res://assets/audio/music/07interior_01.wav" id="bgm_stream"]
+[ext_resource type="AudioStream" uid="uid://dp5xd783rqtxw" path="res://assets/audio/sfx/25锁.mp3" id="cue_lock"]
+
+[sub_resource type="RectangleShape2D" id="GroundShape"]
+size = Vector2(5845, 200)
+
+[sub_resource type="RectangleShape2D" id="EdgeWallShape"]
+size = Vector2(64, 800)
+
+[sub_resource type="CircleShape2D" id="InvestigationShape"]
+radius = 78.0
+
+[sub_resource type="RectangleShape2D" id="ScreenPassageShape"]
+size = Vector2(180, 320)
+
+[sub_resource type="RectangleShape2D" id="LetterPointShape"]
+size = Vector2(200, 300)
+
+[sub_resource type="RectangleShape2D" id="ShelfTriggerShape"]
+size = Vector2(380, 300)
+
+[sub_resource type="RectangleShape2D" id="Item1Shape"]
+size = Vector2(95, 78)
+
+[sub_resource type="RectangleShape2D" id="Item2Shape"]
+size = Vector2(102, 40)
+
+[sub_resource type="RectangleShape2D" id="Item3Shape"]
+size = Vector2(62, 99)
+
+[sub_resource type="RectangleShape2D" id="Item4Shape"]
+size = Vector2(108, 77)
+
+[sub_resource type="RectangleShape2D" id="Item5Shape"]
+size = Vector2(58, 129)
+
+[sub_resource type="Gradient" id="CandleLightGradient"]
+offsets = PackedFloat32Array(0, 0.72, 0.88, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0.35, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="CandleLightTexture"]
+gradient = SubResource("CandleLightGradient")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[node name="Interior01" type="Node2D"]
+script = ExtResource("1")
+dialogue_box_path = NodePath("DialogueBox")
+level_id = &"interior_01"
+player_can_jump = false
+player_path = NodePath("Player")
+spawn_point_path = NodePath("SpawnPoint")
+
+[node name="AmbientDarkness" type="CanvasModulate" parent="."]
+visible = false
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="Background" type="Node2D" parent="."]
+
+[node name="Middle" type="Sprite2D" parent="Background"]
+z_index = -1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("7")
+centered = false
+script = ExtResource("9")
+
+[node name="Front" type="Sprite2D" parent="Background"]
+z_index = 2
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("8")
+centered = false
+script = ExtResource("9")
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Ground" type="StaticBody2D" parent="Terrain"]
+position = Vector2(2922.5, 660)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground"]
+shape = SubResource("GroundShape")
+
+[node name="WallLeft" type="StaticBody2D" parent="Terrain"]
+position = Vector2(-32, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/WallLeft"]
+shape = SubResource("EdgeWallShape")
+
+[node name="WallRight" type="StaticBody2D" parent="Terrain"]
+position = Vector2(5877, 360)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/WallRight"]
+shape = SubResource("EdgeWallShape")
+
+[node name="SpawnPoint" type="Marker2D" parent="."]
+position = Vector2(1300, 560)
+
+[node name="Props" type="Node2D" parent="."]
+
+[node name="InvestigationPoint01" type="Area2D" parent="Props"]
+position = Vector2(262, 423)
+script = ExtResource("10")
+display_text = "陈旧的药炉、药碗、暖手铜炉和厚重毛毯。
+像是有人后来已经无法再出门，只能一直留在这里。"
+prompt_text = "调查矮桌"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/InvestigationPoint01"]
+position = Vector2(0, -81)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/InvestigationPoint01"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="InvestigationPoint02" type="Area2D" parent="Props"]
+position = Vector2(1908, 419)
+script = ExtResource("10")
+display_text = "靠墙立着一根旧马鞭。
+木架上挂着残破斗笠。"
+prompt_text = "查看破窗"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/InvestigationPoint02"]
+position = Vector2(0, -210)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/InvestigationPoint02"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="stones" type="Area2D" parent="Props"]
+position = Vector2(2802, 496)
+script = ExtResource("10")
+display_text = "窗边摆着数块石头。最小的一块石头下压着一张纸。"
+prompt_text = "调查旧柜"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/stones"]
+position = Vector2(5, -302)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/stones"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="shoes" type="Area2D" parent="Props"]
+position = Vector2(3201, 528)
+script = ExtResource("10")
+display_text = "一双适合远行的旧短靴。
+鞋底沾着不同颜色的泥土。
+红土、白沙，还有已经看不出颜色的干泥。"
+prompt_text = "查看镜屏"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/shoes"]
+position = Vector2(0, -98)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/shoes"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="medicine" type="Area2D" parent="Props"]
+position = Vector2(4350, 560)
+script = ExtResource("10")
+display_text = "浮游花药渣
+被重新贴上了“安神花”的药签。"
+prompt_text = "调查书案"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/medicine"]
+position = Vector2(112, -273)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/medicine"]
+position = Vector2(128, -65)
+shape = SubResource("InvestigationShape")
+
+[node name="ScreenPassage" type="Area2D" parent="Props"]
+position = Vector2(3500, 420)
+script = ExtResource("30")
+target_scene = "res://scenes/levels/interior_02.tscn"
+prompt_text = "绕到屏风后面"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/ScreenPassage"]
+position = Vector2(0, -190)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/ScreenPassage"]
+shape = SubResource("ScreenPassageShape")
+
+[node name="LetterPoint" type="Area2D" parent="Props"]
+position = Vector2(4937, 347)
+script = ExtResource("21")
+prompt_text = "查看信件"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/LetterPoint"]
+position = Vector2(1, 3)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/LetterPoint"]
+shape = SubResource("LetterPointShape")
+
+[node name="MedicineBowl" type="Area2D" parent="Props"]
+position = Vector2(542, 562)
+script = ExtResource("10")
+display_text = "药汁早已干涸，只剩一层暗褐色的药渣。
+药渣间混着细长的花茎与卷曲的叶片，与窗外的浮游花一模一样。
+碗底残留的气味，初闻甘甜，余味却苦。"
+prompt_text = "查看药碗"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/MedicineBowl"]
+position = Vector2(-12, -212)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/MedicineBowl"]
+position = Vector2(0, -55)
+shape = SubResource("InvestigationShape")
+
+[node name="Books" type="Area2D" parent="Props"]
+position = Vector2(2323, 304)
+script = ExtResource("13")
+display_text = "书架上堆满卷轴与书册，要拿一本看看吗？"
+options = PackedStringArray("拿一个卷轴", "拿一本书册")
+option_texts = PackedStringArray("摊开卷轴，册名是《云州酒最烈的客栈前50》。", "翻开书册，书名是《野外鞋底掉了应急手册》。")
+prompt_text = "查看书架"
+
+[node name="EyeAnchor" type="Marker2D" parent="Props/Books"]
+position = Vector2(0, -39)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Props/Books"]
+position = Vector2(-11, 152)
+shape = SubResource("InvestigationShape")
+
+[node name="ShelfPuzzle" type="Node2D" parent="."]
+
+[node name="ShelfArt" type="Sprite2D" parent="ShelfPuzzle"]
+z_index = -1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("24")
+centered = false
+script = ExtResource("9")
+
+[node name="ShelfTrigger" type="Area2D" parent="ShelfPuzzle"]
+position = Vector2(4876, 420)
+script = ExtResource("21")
+prompt_text = "查看架子"
+
+[node name="EyeAnchor" type="Marker2D" parent="ShelfPuzzle/ShelfTrigger"]
+position = Vector2(0, -180)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ShelfPuzzle/ShelfTrigger"]
+shape = SubResource("ShelfTriggerShape")
+
+[node name="Item1" type="Area2D" parent="ShelfPuzzle"]
+position = Vector2(5000, 289)
+script = ExtResource("22")
+art_path = NodePath("Pivot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ShelfPuzzle/Item1"]
+shape = SubResource("Item1Shape")
+
+[node name="Pivot" type="Node2D" parent="ShelfPuzzle/Item1"]
+
+[node name="Art" type="Sprite2D" parent="ShelfPuzzle/Item1/Pivot"]
+position = Vector2(-5000, -289)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("25")
+centered = false
+script = ExtResource("9")
+
+[node name="Item2" type="Area2D" parent="ShelfPuzzle"]
+position = Vector2(4993, 380)
+script = ExtResource("22")
+art_path = NodePath("Pivot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ShelfPuzzle/Item2"]
+shape = SubResource("Item2Shape")
+
+[node name="Pivot" type="Node2D" parent="ShelfPuzzle/Item2"]
+
+[node name="Art" type="Sprite2D" parent="ShelfPuzzle/Item2/Pivot"]
+position = Vector2(-4993, -380)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("26")
+centered = false
+script = ExtResource("9")
+
+[node name="Item3" type="Area2D" parent="ShelfPuzzle"]
+position = Vector2(4908, 390)
+script = ExtResource("22")
+art_path = NodePath("Pivot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ShelfPuzzle/Item3"]
+shape = SubResource("Item3Shape")
+
+[node name="Pivot" type="Node2D" parent="ShelfPuzzle/Item3"]
+
+[node name="Art" type="Sprite2D" parent="ShelfPuzzle/Item3/Pivot"]
+position = Vector2(-4908, -390)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("27")
+centered = false
+script = ExtResource("9")
+
+[node name="Item4" type="Area2D" parent="ShelfPuzzle"]
+position = Vector2(4994, 190)
+script = ExtResource("22")
+art_path = NodePath("Pivot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ShelfPuzzle/Item4"]
+shape = SubResource("Item4Shape")
+
+[node name="Pivot" type="Node2D" parent="ShelfPuzzle/Item4"]
+
+[node name="Art" type="Sprite2D" parent="ShelfPuzzle/Item4/Pivot"]
+position = Vector2(-4994, -190)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("28")
+centered = false
+script = ExtResource("9")
+
+[node name="Item5" type="Area2D" parent="ShelfPuzzle"]
+position = Vector2(4857, 314)
+script = ExtResource("22")
+art_path = NodePath("Pivot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ShelfPuzzle/Item5"]
+shape = SubResource("Item5Shape")
+
+[node name="Pivot" type="Node2D" parent="ShelfPuzzle/Item5"]
+
+[node name="Art" type="Sprite2D" parent="ShelfPuzzle/Item5/Pivot"]
+position = Vector2(-4857, -314)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("29")
+centered = false
+script = ExtResource("9")
+
+[node name="SelectSound" type="AudioStreamPlayer" parent="ShelfPuzzle"]
+
+[node name="Puzzle" type="Node" parent="ShelfPuzzle"]
+script = ExtResource("23")
+trigger_path = NodePath("../ShelfTrigger")
+group_path = NodePath("..")
+items = Array[NodePath]([NodePath("../Item1"), NodePath("../Item2"), NodePath("../Item3"), NodePath("../Item4"), NodePath("../Item5")])
+select_sound_path = NodePath("../SelectSound")
+player_path = NodePath("../../Player")
+flag_to_set = &"interior_01.shelf_puzzle_solved"
+
+[node name="Player" parent="." instance=ExtResource("2")]
+scale = Vector2(1.5, 1.5)
+move_speed = 300.0
+
+[node name="Sprite" parent="Player/PlayerVisual" index="0"]
+sprite_frames = ExtResource("31")
+
+[node name="CandleLight" type="PointLight2D" parent="Player"]
+position = Vector2(0, -205)
+color = Color(1, 0.86, 0.66, 1)
+energy = 1.2
+texture = SubResource("CandleLightTexture")
+texture_scale = 1.76667
+
+[node name="FollowCamera2D" type="Camera2D" parent="."]
+script = ExtResource("3")
+target_path = NodePath("../Player")
+bounds_source_path = NodePath("../Background/Middle")
+
+[node name="FrameBars" parent="." instance=ExtResource("5")]
+
+[node name="DialogueBox" parent="." instance=ExtResource("4")]
+player_path = NodePath("../Player")
+
+[node name="StoneOverlay" type="CanvasLayer" parent="."]
+layer = 56
+
+[node name="Root" type="Control" parent="StoneOverlay"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Dimmer" type="ColorRect" parent="StoneOverlay/Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="Overview" type="TextureRect" parent="StoneOverlay/Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_stone1")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="Detail" type="TextureRect" parent="StoneOverlay/Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_stone2")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="MedicineOverlay" type="CanvasLayer" parent="."]
+layer = 56
+
+[node name="Root" type="Control" parent="MedicineOverlay"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Dimmer" type="ColorRect" parent="MedicineOverlay/Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="BowlImage" type="TextureRect" parent="MedicineOverlay/Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_bowl1")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="MedicineImage" type="TextureRect" parent="MedicineOverlay/Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_medicine")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="MemoryFade" parent="." instance=ExtResource("14")]
+
+[node name="FocusBlur" parent="." instance=ExtResource("15")]
+peak_blur_radius = 12.0
+blur_in_duration = 0.5
+hold_duration = 0.9
+blur_out_duration = 0.8
+
+[node name="CGSequence" type="CanvasLayer" parent="."]
+script = ExtResource("16")
+images = Array[Texture2D]([ExtResource("17"), ExtResource("18"), ExtResource("19")])
+captions = PackedStringArray("为慰深闺移异卉，浮游初放笑临窗。", "花高一尺人低首，香重三分梦渐长。", "堪叹芳菲成锁槛，云岫无由再见山。")
+
+[node name="MemoryNarration" parent="." instance=ExtResource("20")]
+backdrop_color = Color(0, 0, 0, 1)
+text_color = Color(0.92, 0.9, 0.87, 1)
+
+[node name="LetterOverlay" parent="." instance=ExtResource("20")]
+backdrop_color = Color(0.93, 0.9, 0.83, 1)
+text_color = Color(0.16, 0.13, 0.11, 1)
+font_size = 23
+text_alignment = 0
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="InteractionPrompt" parent="UI" instance=ExtResource("6")]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+grow_horizontal = 1
+grow_vertical = 1
+player_path = NodePath("../../Player")
+
+[node name="ColorZone" type="Node" parent="."]
+script = ExtResource("12")
+subject_path = NodePath("../Player")
+target_paths = Array[NodePath]([NodePath("../Player/PlayerVisual/Sprite")])
+
+[node name="CueSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("cue_lock")
+
+[node name="StoryDirector" type="Node" parent="."]
+script = ExtResource("11")
+
+[node name="Bgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("bgm_stream")
+script = ExtResource("bgm_script")
+
+[node name="MemoryBgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("bgm_memory")
+script = ExtResource("bgm_script")
+autoplay_on_ready = false
+
+[editable path="Player"]

@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://bgypo4k2v8j21"]
+[gd_scene load_steps=36 format=3 uid="uid://bgypo4k2v8j21"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -27,6 +27,8 @@
 [ext_resource type="Script" uid="uid://bswade5nnn6pd" path="res://scripts/components/text_interactable.gd" id="25"]
 [ext_resource type="Texture2D" uid="uid://shbf4ujr6c6t" path="res://assets/art/sprites/interactables/courtyard_03/xianglu.png" id="26"]
 [ext_resource type="Script" uid="uid://1euiicd8v6n4" path="res://scripts/components/level_exit.gd" id="27"]
+[ext_resource type="Script" uid="uid://yjts2i54a6o" path="res://scripts/components/level_bgm.gd" id="bgm_script"]
+[ext_resource type="AudioStream" uid="uid://bn5od5wy833a5" path="res://assets/audio/music/03courtyard_03.mp3" id="bgm_stream"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(9820, 200)
@@ -331,7 +333,7 @@ minimum_brightness = 0.38
 [node name="Cutscenes" type="Node" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("2")]
-move_speed = 1100.0
+move_speed = 300.0
 
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")
@@ -367,3 +369,7 @@ white_fade_path = NodePath("../WhiteFade")
 player_path = NodePath("../Player")
 lantern_one_changed_texture = ExtResource("23")
 lantern_two_changed_texture = ExtResource("24")
+
+[node name="Bgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("bgm_stream")
+script = ExtResource("bgm_script")

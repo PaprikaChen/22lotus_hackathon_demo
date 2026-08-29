@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/focus_blur.gd" id="1"]
+[ext_resource type="Shader" path="res://shaders/ui/focus_blur.gdshader" id="2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_focus_blur"]
+shader = ExtResource("2")
+
+[node name="FocusBlur" type="CanvasLayer"]
+layer = 49
+script = ExtResource("1")
+
+[node name="BlurRect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_focus_blur")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

@@ -1,14 +1,16 @@
-[gd_scene load_steps=6 format=3 uid="uid://c4te6c73d6u4f"]
+[gd_scene load_steps=7 format=3 uid="uid://c4te6c73d6u4f"]
 
 [ext_resource type="Script" uid="uid://xya7r4p54m80" path="res://scripts/ui/rotary_lock_ui.gd" id="1"]
 [ext_resource type="Script" uid="uid://dekbr1uqsx3i5" path="res://scripts/ui/rotary_lock_ring.gd" id="2"]
 [ext_resource type="Texture2D" uid="uid://d2d4e2bgqrcya" path="res://assets/art/sprites/interactables/courtyard_01/lock_outside.png" id="3"]
 [ext_resource type="Texture2D" uid="uid://e1bqdyspri4p" path="res://assets/art/sprites/interactables/courtyard_01/lock_middle.png" id="4"]
 [ext_resource type="Texture2D" uid="uid://dp4pa1fybm1fc" path="res://assets/art/sprites/interactables/courtyard_01/lock_inside.png" id="5"]
+[ext_resource type="AudioStream" uid="uid://dp5xd783rqtxw" path="res://assets/audio/sfx/25锁.mp3" id="6"]
 
 [node name="RotaryLock" type="CanvasLayer"]
 layer = 70
 script = ExtResource("1")
+detent_sfx = ExtResource("6")
 
 [node name="Root" type="Control" parent="."]
 layout_mode = 3

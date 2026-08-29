@@ -5,7 +5,7 @@
 
 ---
 
-## 0. 项目现状快照（2026-08-26，勿凭猜测推翻）
+## 0. 项目现状快照（2026-08-30，勿凭猜测推翻）
 
 - 引擎：Godot 4.4.1-stable，Forward Plus。
 - 主场景：`res://scenes/ui/MainMenu.tscn`。
@@ -17,6 +17,7 @@
   - `GalleryManager` → `scripts/autoload/gallery_manager.gd`（画廊 CG 收集，
     **跨存档槽**，落盘在全局 `user://gallery.json`，不进存档槽格式）
   - `_mcp_game_helper` → godot_ai 插件基础设施，勿动。
+  - `MCPRuntimeServer` → godot_mcp_toolkit 插件基础设施，勿动。
 - 已实现并可运行的系统：
   - 玩家平台移动：`scenes/player/player.gd`（CharacterBody2D，移动/跳跃/重力
     /出生点/respawn/轻量状态枚举/带来源输入锁/移动模式开关）。子组件：
@@ -73,8 +74,10 @@
     出生点、DeathZone）—— 两者为旧结构，暂未迁移到 LevelBase。
   - UI：`scenes/ui/main_menu.gd`、`scenes/ui/save_slot_menu.gd`（所有文件 I/O
     经 SaveManager，UI 不直接碰文件系统）。
-  - 测试场景：`tests/`（movement / dream_gap / interaction / save_load 四个
-    单项 + integration 综合灰盒关卡 + `whitebox_25d/` 2.5D 白盒验证房；
+  - 测试场景：`tests/`（movement / player_visual / dream_gap / interaction /
+    save_load / memory_box 单项 + integration 综合灰盒关卡 +
+    old_courtyard / courtyard_01 / interior_02 关卡回归 +
+    rotary_lock_view 肉眼检查房 + `whitebox_25d/`、`bg_pacing/` 验证房；
     自动断言打印 `[TEST:*] PASS/FAIL`，无头模式自动退出）。
     `tests/helpers/` 里的钥匙/门/存档点是新交互物的参考实现。
 - 叙事编排：`scripts/narrative/`（`StoryDirector` / `Cutscene` / `StoryNPC`
@@ -126,10 +129,53 @@
     `_apply_inner_gate_lock()` 摆终态。读档恢复走同一条路。
   - 回归：`tests/test_courtyard_01.gd`（陷阱 / 档位 / 判定 / 门槛，headless
     可跑）；`tests/test_rotary_lock_view.tscn` 是占位视觉的肉眼检查房。
-- 正式关卡：`courtyard_01` / `courtyard_02`（共用关卡脚本
-  `scenes/levels/courtyard_level.gd`，各有自己的 StoryDirector）。
+- 正式关卡（2026-08-30）：`courtyard_01` → `02` → `03` → `04` →
+  `interior_01` → `interior_02`。四个 courtyard **共用**关卡脚本
+  `scenes/levels/courtyard_level.gd`，各有自己的 StoryDirector。
   新游戏入口 = `SaveManager.NEW_GAME_SCENE_PATH` → courtyard_01，
   之前先播 `PROLOGUE_SCENE_PATH`（前情提要）。旧院降级为参考实现。
+  - **所有正式关卡都写着 `player_can_jump = false`**（LevelBase 的关卡配置，
+    和 `movement_mode` 并列，进关时下发）。玩法是行走探索 + 调查 + 机关，
+    别假设能跳。
+  - 横向推进方式：长卷 `Backdrop`（按世界高度反推 scale）+ `FollowCamera2D`
+    的左右闸门，**一个场景一整条长卷**，不分屏不传送。老的
+    `ExplorationArea` + `AreaFlowController` 多屏流转只有 `old_courtyard`
+    还在用，新关卡不要再走那条路。
+  - `courtyard_03` 的灯笼区会跳到子关卡
+    `courtyard_03_incense_memory.tscn`（三个调查点依次开放 + 白幕文字演出），
+    做完写 Flag + 挂起返回对白标记，白幕回主庭院并落回 Director 常量里的
+    坐标（**不沿用存档坐标**，因为回来后要能继续往前走）。
+  - `interior_01`：药碗 → 失焦 → 黑幕 → 定格 CG → 黑底解说；架子顺序解谜
+    （`SequencePuzzle`）解开后露出一封信；`ColorZoneX` 按世界 X 分段去色。
+  - `interior_02`：十幕皮影舞台，**唯一自己写关卡脚本的关**
+    （`interior_02.gd`，换幕是关卡机制不是剧情）。数值全在
+    `scripts/globals/shadow_play_config.gd`；十幕贴图用 String 路径 +
+    `CACHE_MODE_IGNORE` 逐幕加载 / 释放，**不要改成 preload**。
+- 新增的交互物与解谜组件（都在 `scripts/components/`）：
+  `passage_gate.gd`（PassageGate，交互一次清掉挡路障碍，发 `cleared`）、
+  `choice_text_interactable.gd`（多选调查点，发 `choice_requested`）、
+  `animated_text_interactable.gd`（TextInteractable + 局部摇摆 / 附图）、
+  `sequence_puzzle.gd` + `sequence_puzzle_item.gd`（按顺序点物品，
+  **答案是 Inspector 里的数组顺序，不要写进代码**）。
+- 演出件（`scripts/ui/`，全部只管画面：不锁玩家、不写 Flag、不切场景，
+  编排权在 Director）。层号是硬约定，新增前先想清楚该压在谁上面：
+  `FrameBars`(50，影院黑边，@tool) → `DialogueBox`(60) →
+  `RotaryLockUI`(70) → `NarrationOverlay`(80，白幕居中逐句文字) →
+  `ScreenFade`(95，唯一可复用的全屏淡入淡出)；另有 `FocusBlur`(49，
+  只糊游戏画面，压在黑边之下)与 `CGSequence`（定格 CG + 字幕，
+  用默认层，靠 ScreenFade 先黑幕遮住、再淡回来露出它）。
+  **不要让 NarrationOverlay 去复用 DialogueBox**，两者是并列的两种演出。
+- 纯表现组件（只改自身变换或材质，不读输入、不碰剧情碰撞）：
+  `floating_visual` / `brightness_pulse` / `eye_follow_visual` / `flower_rig` /
+  `shadow_puppet_actor` / `color_zone_x` / `arch_bridge`（@tool 拱桥地形）。
+- 暂停菜单：`scenes/ui/pause_menu.tscn`（PauseMenu）。由
+  `LevelBase._install_pause_menu()` 自动挂，**且只在关卡自己就是
+  `current_scene` 时才挂**——测试把关卡当子场景实例化时不该多出全屏 UI。
+  关卡场景里不要再手动放一个。
+- 画廊：`scripts/ui/gallery_screen.gd` + `scenes/ui/gallery.tscn`，从主菜单
+  直接进，静态数据 `resources/cg/*.tres`（CGEntry，自动注册）。
+  **解锁 CG 是剧情后果，只能由 StoryDirector 调 `GalleryManager.unlock_cg()`**，
+  Cutscene 和 UI 不许自己解锁。
 - 玩家表现层：`scenes/player/player_visual.gd`（PlayerVisual）——只听
   `state_changed` / `direction_changed`，把状态映射到动画、朝向映射到 `flip_h`。
   **移动逻辑不得依赖动画资源名**，映射表只存在于这个文件。素材没接上时自动
@@ -156,9 +202,11 @@
   -- --scene=res://scenes/levels/courtyard_01.tscn --out=user://shot.png
   --frames=40 [--hold=move_right]`。
 - **尚未实现**（不要假装存在，也不要在没有任务要求时顺手创建）：
-  SceneManager（场景切换目前直接使用 `get_tree().change_scene_to_file()`）、
+  SceneManager（场景切换目前直接使用 `get_tree().change_scene_to_file()`，
+  已有十余处；子关卡往返再多两处就该造了）、
   独立的 PlayerStateMachine 脚本（当前为 player.gd 内的轻量枚举，够用前不拆）、
-  暂停菜单、全局 EventBus（**明令禁止**，Signal 直连 Director 已够用）、
+  BGM / 环境音 / 脚步的音频接入与总线规划（目前只有旋锁两个 SFX 事件）、
+  全局 EventBus（**明令禁止**，Signal 直连 Director 已够用）、
   Quest / Narrative Graph / Story DSL 之类的大型叙事框架（**明令禁止**）。
 - 输入动作：`move_left`(A/←) `move_right`(D/→) `move_up`(W/↑)
   `move_down`(S/↓) `jump`(空格) `slow_time`(**Shift**) `interact`(E)

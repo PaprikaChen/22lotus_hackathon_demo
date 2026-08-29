@@ -39,7 +39,8 @@ const LOCK_SOURCE := &"rotary_lock"
 ## 顺序错误时的提示。次数错误**不出提示**（设计要求），所以只有这一条。
 @export var wrong_order_hint: String = "好像顺序不太对……"
 @export_group("Audio")
-## 档位「咔哒」。**占位为空**：没挂资源时安全跳过，不影响功能。
+## 档位「咔哒」。拨过一格响一声；失败归位也用同一条（响一声，不是逐档连响）。
+## 没挂资源时安全跳过，不影响功能。
 @export var detent_sfx: AudioStream = null
 ## 开锁成功音。和档位音是不同事件，不要复用同一个 player。
 @export var unlock_sfx: AudioStream = null
@@ -109,10 +110,14 @@ func _build_audio() -> void:
 	_detent_player = AudioStreamPlayer.new()
 	_detent_player.name = "DetentSfx"
 	_detent_player.stream = detent_sfx
+	# 锁界面开着时 `get_tree().paused = true`，默认继承的进程模式会让音频
+	# 跟着暂停——整个锁就哑了。显式设成 ALWAYS，和本层的 process_mode 一致。
+	_detent_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(_detent_player)
 	_unlock_player = AudioStreamPlayer.new()
 	_unlock_player.name = "UnlockSfx"
 	_unlock_player.stream = unlock_sfx
+	_unlock_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(_unlock_player)
 
 
@@ -335,9 +340,13 @@ func _on_wrong_attempt(show_hint: bool) -> void:
 
 
 ## 归位 = 三层都回到 0 档。走 ring 现成的吸附插值，手感和平时落位一致。
+## 归位和拨档共用同一条「咔哒」，但**只响一声**：`set_detent_index()` 是静默的
+## （不发 detent_stepped），所以这里手动播一次。逐档补响会变成一串扫射，
+## 而归位在听感上是「锁被推回去」的一下，不是玩家又拨了 N 格。
 func _return_rings_home() -> void:
 	for ring in _rings:
 		ring.set_detent_index(0, true)
+	_play(_detent_player)
 
 
 func _clear_hint() -> void:

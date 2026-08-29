@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://d2u434h44b6vt"
+path="res://.godot/imported/03可香一点，她就来了。香灭了，就又不见了.mp3-5a79a01990997b6dc873702b88ad4520.mp3str"
+
+[deps]
+
+source_file="res://assets/audio/music/young liniang/03可香一点，她就来了。香灭了，就又不见了.mp3"
+dest_files=["res://.godot/imported/03可香一点，她就来了。香灭了，就又不见了.mp3-5a79a01990997b6dc873702b88ad4520.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

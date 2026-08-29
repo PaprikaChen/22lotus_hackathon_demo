@@ -47,6 +47,9 @@ const LOCK_CAMERA_SLIDE := &"west_gate_slide"
 @onready var _lock: RotaryLockUI = get_node_or_null(^"../RotaryLock") as RotaryLockUI
 @onready var _dialogue: Node = get_node_or_null(dialogue_box_path)
 @onready var _paper_overlay: Control = get_node_or_null(^"../PaperOverlay/Root") as Control
+@onready var _locked_middle_overlay: Sprite2D = get_node_or_null(
+	^"../Background/LockedMiddleOverlay"
+) as Sprite2D
 ## 锁没开之前挡在门后的实体墙。开锁后撤掉。
 @onready var _gate_blocker: CollisionObject2D = \
 	get_node_or_null(^"../Terrain/InnerGateBlocker") as CollisionObject2D
@@ -224,6 +227,8 @@ func _apply_west_passage() -> void:
 ## 幂等 —— 现场解锁和读档恢复走同一条路。
 func _apply_inner_gate_lock() -> void:
 	var unlocked := StoryFlagManager.has_flag(FLAG_INNER_GATE_UNLOCKED)
+	if _locked_middle_overlay != null:
+		_locked_middle_overlay.visible = not unlocked
 	if _exit != null:
 		_exit.required_flag = FLAG_INNER_GATE_UNLOCKED
 	if _lock != null:

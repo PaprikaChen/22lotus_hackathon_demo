@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/prologue_screen.gd" id="1"]
+[ext_resource type="AudioStream" uid="uid://cpcyaa77lwt68" path="res://assets/audio/sfx/0前情提要.mp3" id="2"]
+[ext_resource type="AudioStream" uid="uid://dab7rv6tsooy6" path="res://assets/audio/sfx/2摔在+骨折.mp3" id="3"]
 
 [node name="PrologueScreen" type="Control"]
 anchor_right = 1.0
@@ -8,6 +10,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
+enter_sfx = ExtResource("3")
 segments = PackedStringArray("却说杜丽娘醒来，方知柳梦梅早亡，\n一纸婚书，便是半生归宿。\n父亲称病相欺，嬷嬷以礼相逼。\n幸得春香吐露实情，以肩相托，助她越高墙入荒院。\n墙内生死未卜，墙外花轿将至，丽娘决然纵身跃下。", "正是：\n一纸婚书荒唐言，荒府凄凄寻蹊径。")
 
 [node name="Backdrop" type="ColorRect" parent="."]
@@ -43,3 +46,6 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(0.75, 0.72, 0.68, 1)
 text = "空格  ▸"
 horizontal_alignment = 1
+
+[node name="Narration" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("2")

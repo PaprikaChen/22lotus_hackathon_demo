@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/levels/interior_02.tscn" id="1"]
+
+[node name="Interior02FinaleView" type="Node"]
+
+[node name="Interior02" parent="." instance=ExtResource("1")]
+starting_stage = 10
+fade_duration = 0.0

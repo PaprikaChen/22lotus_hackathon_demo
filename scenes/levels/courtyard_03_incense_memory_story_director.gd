@@ -16,12 +16,17 @@ const ADULT_LINIANG := "丽娘"
 @export var white_fade_path: NodePath
 @export var narration_overlay_path: NodePath
 @export var player_path: NodePath
+@export var young_liniang_voice_player_path: NodePath = ^"../YoungLiniangVoice"
+## 按文件名前缀数字升序排列：01、03、05、07、08、10、12。
+@export var young_liniang_voices: Array[AudioStream] = []
 
 @onready var _memory_level: Courtyard03IncenseMemoryLevel = get_node(level_path) as Courtyard03IncenseMemoryLevel
 @onready var _dialogue: Node = get_node_or_null(dialogue_box_path)
 @onready var _white_fade: ScreenFade = get_node_or_null(white_fade_path) as ScreenFade
 @onready var _narration: NarrationOverlay = get_node_or_null(narration_overlay_path) as NarrationOverlay
 @onready var _player: Node = get_node_or_null(player_path)
+@onready var _young_liniang_voice: AudioStreamPlayer = \
+	get_node_or_null(young_liniang_voice_player_path) as AudioStreamPlayer
 @onready var _incense: Interactable = get_node_or_null(^"../Props/IncenseMemory") as Interactable
 @onready var _wooden_horse: Interactable = get_node_or_null(^"../Props/WoodenHorseMemory") as Interactable
 @onready var _prayer_cloth: Interactable = get_node_or_null(^"../Props/PrayerClothMemory") as Interactable
@@ -59,9 +64,9 @@ func _on_incense_interacted(player: Node) -> void:
 	_playing = true
 	_lock_player(player)
 	await _begin_scene_text()
-	await _show_text("春香，去世的人，还会回来吗？", CHILD_LINIANG)
+	await _show_text("春香，去世的人，还会回来吗？", CHILD_LINIANG, 0)
 	await _show_text("不会呀。", CHILD_CHUNXIANG)
-	await _show_text("可香一点，她就来了。\n香灭了，就又不见了。", CHILD_LINIANG)
+	await _show_text("可香一点，她就来了。\n香灭了，就又不见了。", CHILD_LINIANG, 1)
 	await _show_text(
 		"从三岁到五岁，这炉香总在丽娘生辰燃起。\n"
 		+ "\n"
@@ -81,12 +86,12 @@ func _on_wooden_horse_interacted(player: Node) -> void:
 	_lock_player(player)
 	await _begin_scene_text()
 	await _show_text("她陪你做什么？", CHILD_CHUNXIANG)
-	await _show_text("量个子，陪我骑马。\n还讲江州的雨，岷山的雪。", CHILD_LINIANG)
+	await _show_text("量个子，陪我骑马。\n还讲江州的雨，岷山的雪。", CHILD_LINIANG, 2)
 	await _show_text("她是谁呀？", CHILD_CHUNXIANG)
 	await _show_text("幼年丽娘想了很久。")
-	await _show_text("我不记得了。", CHILD_LINIANG)
+	await _show_text("我不记得了。", CHILD_LINIANG, 3)
 	await get_tree().create_timer(0.7).timeout
-	await _show_text("可她认得我。", CHILD_LINIANG)
+	await _show_text("可她认得我。", CHILD_LINIANG, 4)
 	await _show_text(
 		"三道刻痕，记下丽娘三岁、四岁、五岁的身高。\n"
         + "\n"
@@ -102,14 +107,14 @@ func _on_prayer_cloth_interacted(player: Node) -> void:
 	_lock_player(player)
 	await _begin_scene_text()
 	await _show_text("明年，她还来吗？", CHILD_CHUNXIANG)
-	await _show_text("不来了。", CHILD_LINIANG)
+	await _show_text("不来了。", CHILD_LINIANG, 5)
 	await _show_text("为什么？", CHILD_CHUNXIANG)
 	await _show_text(
 		"她说，不能老在梦里待着。\n"
         + "\n"
 		+ "还说，看得见也好，看不见也好……\n"
         + "\n"
-		+ "我好好的，她就放心了。", CHILD_LINIANG)
+		+ "我好好的，她就放心了。", CHILD_LINIANG, 6)
 	await _show_text(
 		"最后一次生辰，那人没有留下姓名，也没有再许下来年。\n"
         + "\n"
@@ -159,12 +164,15 @@ func _set_interactable_active(interactable: Interactable, active: bool) -> void:
 ## 常规对话框，见 _show_dialogue_box()。
 ## `speaker` 为空即旁白；白幕由 _begin_scene_text() / _end_scene_text() 统一
 ## 开合，一次交互里的所有句子共用同一块白幕。
-func _show_text(text: String, speaker: String = "") -> void:
+func _show_text(text: String, speaker: String = "", voice_index: int = -1) -> void:
+	_play_young_liniang_voice(voice_index)
 	if _narration != null:
 		await _narration.show_line(text, speaker)
+		_stop_young_liniang_voice()
 		return
 	# 没挂白幕件时退化成对话框，流程不能因为缺一个表现件就卡住。
 	await _show_dialogue_box(text, speaker)
+	_stop_young_liniang_voice()
 
 
 ## 走关卡常规的对话框（带立绘）。白幕演出之外的少数句子用它。
@@ -181,8 +189,27 @@ func _begin_scene_text() -> void:
 
 
 func _end_scene_text() -> void:
+	_stop_young_liniang_voice()
 	if _narration != null:
 		await _narration.end_session()
+
+
+func _play_young_liniang_voice(index: int) -> void:
+	_stop_young_liniang_voice()
+	if _young_liniang_voice == null or index < 0 or index >= young_liniang_voices.size():
+		return
+	var voice := young_liniang_voices[index]
+	if voice == null:
+		return
+	_young_liniang_voice.stream = voice
+	_young_liniang_voice.play()
+
+
+func _stop_young_liniang_voice() -> void:
+	if _young_liniang_voice == null:
+		return
+	_young_liniang_voice.stop()
+	_young_liniang_voice.stream = null
 
 
 func _lock_player(player: Node) -> void:

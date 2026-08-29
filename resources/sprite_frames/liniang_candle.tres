@@ -1,0 +1,61 @@
+[gd_resource type="SpriteFrames" load_steps=8 format=3 uid="uid://djv7pvsg4r20v"]
+
+[ext_resource type="Texture2D" uid="uid://mr7fne5b5ib2" path="res://assets/art/sprites/liniang/liniang_Candle.png" id="1"]
+
+[sub_resource type="AtlasTexture" id="candle_0"]
+atlas = ExtResource("1")
+region = Rect2(0, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="candle_1"]
+atlas = ExtResource("1")
+region = Rect2(512, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="candle_2"]
+atlas = ExtResource("1")
+region = Rect2(1024, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="candle_3"]
+atlas = ExtResource("1")
+region = Rect2(1536, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="candle_4"]
+atlas = ExtResource("1")
+region = Rect2(2048, 0, 512, 512)
+
+[sub_resource type="AtlasTexture" id="candle_5"]
+atlas = ExtResource("1")
+region = Rect2(2560, 0, 512, 512)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("candle_0")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 3.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("candle_0")
+}, {
+"duration": 1.0,
+"texture": SubResource("candle_1")
+}, {
+"duration": 1.0,
+"texture": SubResource("candle_2")
+}, {
+"duration": 1.0,
+"texture": SubResource("candle_3")
+}, {
+"duration": 1.0,
+"texture": SubResource("candle_4")
+}, {
+"duration": 1.0,
+"texture": SubResource("candle_5")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 6.67
+}]

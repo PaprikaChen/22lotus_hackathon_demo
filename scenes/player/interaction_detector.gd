@@ -40,6 +40,19 @@ func get_current_target() -> Interactable:
 	return _target
 
 
+## 动态启用调查物时，玩家可能已经站在它的范围内，Godot 不保证为这种情况
+## 补发 area_entered。由启用方在下一物理帧调用一次，重同步当前重叠候选。
+## 这不是每帧扫描，只用于运行时开关碰撞的调查物。
+func refresh_overlaps() -> void:
+	var overlaps := get_overlapping_areas()
+	for candidate in _candidates.duplicate():
+		if not overlaps.has(candidate):
+			_candidates.erase(candidate)
+	for area in overlaps:
+		_on_area_entered(area)
+	_update_target()
+
+
 # --- Internal ---------------------------------------------------------------
 
 func _on_area_entered(area: Area2D) -> void:

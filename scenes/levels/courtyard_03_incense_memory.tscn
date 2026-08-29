@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://btcqud1h41q5p"]
+[gd_scene load_steps=26 format=3 uid="uid://btcqud1h41q5p"]
 
 [ext_resource type="Script" path="res://scenes/levels/courtyard_03_incense_memory_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -13,6 +13,15 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="11"]
 [ext_resource type="Script" uid="uid://chcepwsloyf57" path="res://scenes/levels/courtyard_03_incense_memory_story_director.gd" id="12"]
 [ext_resource type="PackedScene" path="res://scenes/ui/narration_overlay.tscn" id="13"]
+[ext_resource type="AudioStream" uid="uid://jf2wyw1utn1b" path="res://assets/audio/music/young liniang/01春香，死人还会回来吗？.mp3" id="14_voice01"]
+[ext_resource type="AudioStream" uid="uid://d2u434h44b6vt" path="res://assets/audio/music/young liniang/03可香一点，她就来了。香灭了，就又不见了.mp3" id="15_voice03"]
+[ext_resource type="AudioStream" uid="uid://bxg3kv7j47ig" path="res://assets/audio/music/young liniang/05她量我有多高，陪我骑马 还讲江州的雨，岷山的雪.mp3" id="16_voice05"]
+[ext_resource type="AudioStream" uid="uid://18lam0a1qcq6" path="res://assets/audio/music/young liniang/07我不知道。.mp3" id="17_voice07"]
+[ext_resource type="AudioStream" uid="uid://drj28c81iixpd" path="res://assets/audio/music/young liniang/08可她认得我.mp3" id="18_voice08"]
+[ext_resource type="AudioStream" uid="uid://cf7mrish4pwd1" path="res://assets/audio/music/young liniang/10不来了。.mp3" id="19_voice10"]
+[ext_resource type="AudioStream" uid="uid://c5ngurk56u3k0" path="res://assets/audio/music/young liniang/12她说，不能老在梦里待着。.mp3" id="20_voice12"]
+[ext_resource type="Script" uid="uid://yjts2i54a6o" path="res://scripts/components/level_bgm.gd" id="bgm_script"]
+[ext_resource type="AudioStream" uid="uid://bpiw7x5ixxoa2" path="res://assets/audio/music/02memory.mp3" id="bgm_stream"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(3904, 200)
@@ -119,7 +128,7 @@ shape = SubResource("InteractionShape")
 disabled = true
 
 [node name="Player" parent="." instance=ExtResource("2")]
-move_speed = 1100.0
+move_speed = 300.0
 
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")
@@ -130,6 +139,8 @@ bounds_source_path = NodePath("../Background/Middle")
 
 [node name="DialogueBox" parent="." instance=ExtResource("4")]
 player_path = NodePath("../Player")
+
+[node name="YoungLiniangVoice" type="AudioStreamPlayer" parent="."]
 
 [node name="NarrationOverlay" parent="." instance=ExtResource("13")]
 
@@ -153,3 +164,8 @@ dialogue_box_path = NodePath("../DialogueBox")
 white_fade_path = NodePath("../WhiteFade")
 narration_overlay_path = NodePath("../NarrationOverlay")
 player_path = NodePath("../Player")
+young_liniang_voices = Array[AudioStream]([ExtResource("14_voice01"), ExtResource("15_voice03"), ExtResource("16_voice05"), ExtResource("17_voice07"), ExtResource("18_voice08"), ExtResource("19_voice10"), ExtResource("20_voice12")])
+
+[node name="Bgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("bgm_stream")
+script = ExtResource("bgm_script")

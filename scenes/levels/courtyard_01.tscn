@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://cqd0o6acg8kw0"]
+[gd_scene load_steps=37 format=3 uid="uid://cqd0o6acg8kw0"]
 
 [ext_resource type="Script" uid="uid://dqi35wwc25m43" path="res://scenes/levels/courtyard_level.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2"]
@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://c4te6c73d6u4f" path="res://scenes/ui/rotary_lock.tscn" id="18"]
 [ext_resource type="Script" uid="uid://cmt7i5cs3otw0" path="res://scripts/components/backtrack_trap.gd" id="19"]
 [ext_resource type="Texture2D" uid="uid://5sj0t61tslaa" path="res://assets/art/backgrounds/middle/courtyard_01_middle.png" id="20"]
+[ext_resource type="Texture2D" uid="uid://jhf480bwoki6" path="res://assets/art/backgrounds/middle/courtyard_02_middle_before.png" id="20_before"]
 [ext_resource type="Texture2D" uid="uid://cc0hsf21acus4" path="res://assets/art/backgrounds/front/courtyard_01_front.png" id="21"]
 [ext_resource type="Texture2D" uid="uid://nen672ljdeqj" path="res://assets/art/sprites/interactables/courtyard_01/denglong1.png" id="22"]
 [ext_resource type="Texture2D" uid="uid://bbijla52ouqds" path="res://assets/art/sprites/interactables/courtyard_01/denglong2.png" id="23"]
@@ -26,6 +27,10 @@
 [ext_resource type="Texture2D" uid="uid://grj4r7ke8kfc" path="res://assets/art/sprites/interactables/courtyard_01/paper_note_placeholder.png" id="28"]
 [ext_resource type="Script" uid="uid://t483a1vbwnvy" path="res://scripts/components/animated_text_interactable.gd" id="29"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interaction_prompt.tscn" id="30"]
+[ext_resource type="AudioStream" uid="uid://dckkp5pwx3utc" path="res://assets/audio/sfx/1拔草.mp3" id="31"]
+[ext_resource type="AudioStream" uid="uid://bso8xkrl5kvib" path="res://assets/audio/sfx/16木马摇一摇.mp3" id="32"]
+[ext_resource type="Script" uid="uid://yjts2i54a6o" path="res://scripts/components/level_bgm.gd" id="bgm_script"]
+[ext_resource type="AudioStream" uid="uid://nkhkugrexw7o" path="res://assets/audio/music/05courtyard_01.mp3" id="bgm_stream"]
 
 [sub_resource type="RectangleShape2D" id="GroundShape"]
 size = Vector2(9884, 200)
@@ -67,6 +72,13 @@ script = ExtResource("13")
 z_index = -1
 scale = Vector2(0.6, 0.6)
 texture = ExtResource("20")
+centered = false
+script = ExtResource("13")
+
+[node name="LockedMiddleOverlay" type="Sprite2D" parent="Background"]
+z_index = -1
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("20_before")
 centered = false
 script = ExtResource("13")
 
@@ -150,6 +162,7 @@ shape = SubResource("WindowListenShape")
 position = Vector2(5100, 560)
 script = ExtResource("29")
 animated_visual_path = NodePath("ArtPivot")
+sway_sound_path = NodePath("SwaySfx")
 display_text = "一只破旧的木马。
 马背已经被磨得很光滑。
 似乎曾经有人经常骑在上面。"
@@ -161,6 +174,9 @@ position = Vector2(2, -93)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/WoodenHorse"]
 position = Vector2(0, -70)
 shape = SubResource("InteractShape")
+
+[node name="SwaySfx" type="AudioStreamPlayer" parent="Props/WoodenHorse"]
+stream = ExtResource("32")
 
 [node name="ArtPivot" type="Node2D" parent="Props/WoodenHorse"]
 scale = Vector2(0.7, 0.7)
@@ -262,6 +278,7 @@ centered = false
 script = ExtResource("13")
 
 [node name="ClearSfx" type="AudioStreamPlayer" parent="Props/WeedsGate"]
+stream = ExtResource("31")
 
 [node name="GateSpot" type="Area2D" parent="Props"]
 position = Vector2(880, 560)
@@ -272,7 +289,7 @@ display_text = "门锁已经锈死。
 prompt_text = "调查院门"
 
 [node name="EyeAnchor" type="Marker2D" parent="Props/GateSpot"]
-position = Vector2(175, -105)
+position = Vector2(121, -198)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/GateSpot"]
 position = Vector2(175, -30)
@@ -283,21 +300,6 @@ visible = false
 color = Color(0.55, 0.44, 0.3, 1)
 polygon = PackedVector2Array(-26, -150, 26, -150, 26, 0, -26, 0)
 
-[node name="WellSpot" type="Area2D" parent="Props"]
-position = Vector2(4290, 560)
-script = ExtResource("4")
-display_text = "（占位）井口盖着一块木板。
-（占位）板上压着一只空瓷碗。"
-prompt_text = "查看井台"
-
-[node name="EyeAnchor" type="Marker2D" parent="Props/WellSpot"]
-position = Vector2(0, -100)
-
-[node name="Visual" type="Polygon2D" parent="Props/WellSpot"]
-visible = false
-color = Color(0.42, 0.45, 0.5, 1)
-polygon = PackedVector2Array(-40, -60, 40, -60, 40, 0, -40, 0)
-
 [node name="ToNextLevel" type="Area2D" parent="Props"]
 position = Vector2(9000, 560)
 script = ExtResource("7")
@@ -307,7 +309,7 @@ required_flag = &"courtyard_01.inner_gate_unlocked"
 blocked_prompt_text = "拨弄门上的三重旋锁"
 
 [node name="EyeAnchor" type="Marker2D" parent="Props/ToNextLevel"]
-position = Vector2(0, -160)
+position = Vector2(30, -240)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Props/ToNextLevel"]
 position = Vector2(0, -100)
@@ -324,8 +326,8 @@ script = ExtResource("19")
 player_path = NodePath("../../Player")
 wall_path = NodePath("../../Terrain/TrapWall")
 fade_path = NodePath("../../ScreenFade")
-reset_text = "（占位）她明明一直往西走。
-（占位）再抬头，还是这道门前。"
+reset_text = "她明明一直往西走。
+再抬头，还是这道门前。"
 
 [node name="Lanterns" type="Node2D" parent="."]
 
@@ -355,7 +357,7 @@ script = ExtResource("13")
 [node name="Cutscenes" type="Node" parent="."]
 
 [node name="Player" parent="." instance=ExtResource("2")]
-move_speed = 1100.0
+move_speed = 300.0
 
 [node name="FollowCamera2D" type="Camera2D" parent="."]
 script = ExtResource("3")
@@ -397,21 +399,16 @@ mouse_filter = 2
 color = Color(0, 0, 0, 0.5)
 
 [node name="PaperNote" type="TextureRect" parent="PaperOverlay/Root"]
-layout_mode = 0
-anchor_left = 0.5
-anchor_top = 0.42
-anchor_right = 0.5
-anchor_bottom = 0.42
-offset_left = -80.0
-offset_top = -120.0
-offset_right = 80.0
-offset_bottom = 120.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("28")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 6
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -427,3 +424,7 @@ player_path = NodePath("../../Player")
 [node name="StoryDirector" type="Node" parent="."]
 script = ExtResource("11")
 dialogue_box_path = NodePath("../DialogueBox")
+
+[node name="Bgm" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("bgm_stream")
+script = ExtResource("bgm_script")

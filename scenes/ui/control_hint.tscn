@@ -1,0 +1,29 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="FontFile" uid="uid://dg60voccy7y5" path="res://assets/fonts/汇文明朝体.otf" id="1"]
+
+[node name="ControlHint" type="CanvasLayer"]
+layer = 55
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="Root"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 16.0
+offset_right = 390.0
+offset_bottom = 48.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.96, 0.93, 0.9, 0.95)
+theme_override_colors/font_outline_color = Color(0.03, 0.02, 0.04, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 18
+text = "Esc 菜单　　A / D 左右移动　　E 交互"
