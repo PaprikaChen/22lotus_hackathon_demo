@@ -94,7 +94,6 @@ player_path = NodePath("Player")
 spawn_point_path = NodePath("SpawnPoint")
 
 [node name="AmbientDarkness" type="CanvasModulate" parent="."]
-visible = false
 color = Color(0.2, 0.2, 0.2, 1)
 
 [node name="Background" type="Node2D" parent="."]
