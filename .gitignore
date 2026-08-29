@@ -5,6 +5,9 @@
 # 屏幕录制素材：单个文件 40MB+，不属于源码
 录屏/
 
+# 导出产物：exe + pck 约 280MB，是构建结果不是源码
+build/
+
 # Claude Code 的个人权限设置（.local = 每人一份，不入库）
 .claude/settings.local.json
 
